@@ -14,8 +14,8 @@ class NeedReconnectBeforePull(Exception):
 class Messenger(object):
     def __init__(self, email, pw):
         self.sess = requests.Session()
-        self.sess.proxies.update({'https': 'https://127.0.0.1:8888'})
-        self.sess.verify = False
+        # self.sess.proxies.update({'https': 'https://127.0.0.1:8888'})
+        # self.sess.verify = False
         # from requests.packages.urllib3.exceptions import InsecureRequestWarning
         # requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
