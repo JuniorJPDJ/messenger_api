@@ -1,6 +1,6 @@
 __author__ = 'juniorjpdj'
 
-import sys, getpass, json
+import sys, getpass
 from MessengerAPI import Messenger
 from MessengerRealTimeChatAPI import MessengerRealTimeChat
 
