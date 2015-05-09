@@ -1,6 +1,6 @@
 __author__ = 'juniorjpdj'
 
-import requests, json, time, random, os, mimetypes
+import requests, json, time, random
 
 
 def str_base(num, b=36, numerals="0123456789abcdefghijklmnopqrstuvwxyz"):

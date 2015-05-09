@@ -1,52 +1,44 @@
 __author__ = 'juniorjpdj'
 
-import sys, time, getpass
-from collections import deque
+import sys, getpass
 from MessengerAPI import Messenger
+from MessengerRealTimeChatAPI import MessengerRealTimeChat
 
 if sys.platform == "win32":
     encoding = sys.stdout.encoding
 else:
     encoding = "utf8"
 
-
 def safe_print(msg):
     print(unicode(msg).encode(encoding))
 
-shown = deque(maxlen=30)
+def show_msg(date, sender, recipient, body):
+    safe_print(unicode(date.strftime('[%H:%M.%S] {} -> {}: {}')).format(sender, recipient, body))
 
+def group_msg_handler((sender_id, sender_name), (group_id, group_name), message_body, datetime):
+    show_msg(datetime, sender_name, u'Group "{}"'.format(group_name), message_body)
 
-print('Logowanie')
+def msg_handler((sender_id, sender_name), message_body, datetime):
+    show_msg(datetime, sender_name, u'Me', message_body)
+
+def own_group_msg_handler((group_id, group_name), message_body, datetime):
+    show_msg(datetime, u'Me', u'Group "{}"'.format(group_name), message_body)
+
+def own_msg_handler((recipient_id, recipient_name), message_body, datetime):
+    show_msg(datetime, u'Me', recipient_name, message_body)
+
+print('Logging in')
 email = raw_input('E-mail: ')
 pw = getpass.getpass()
 messenger = Messenger(email, pw)
-print('Zalogowano')
+print('Logged in')
 
-friends = messenger.get_friends()
-messenger.send_reconnect()
-lastpull = 0
+rtc = MessengerRealTimeChat(messenger)
+
+rtc.register_group_msg_handler(group_msg_handler)
+rtc.register_msg_handler(msg_handler)
+rtc.register_own_group_msg_handler(own_group_msg_handler)
+rtc.register_own_msg_handler(own_msg_handler)
 
 while 1:
-    pulldelta = time.time() - lastpull
-    if pulldelta < 3:
-        time.sleep(pulldelta + 0.1)
-    data = messenger.send_pull()
-    lastpull = time.time()
-    if data:
-        for i in data:
-            if i['type'] == 'messaging' and i['event'] == 'deliver':
-                m = i['message']
-                if m['mid'] not in shown:
-                    shown.append(m['mid'])
-                    sender = m['sender_name']
-                    if str(m['sender_fbid']) == messenger.uid:
-                        sender = 'Ja'
-                    if 'group_thread_info' in m and m['group_thread_info']:
-                        safe_print(u'{} -> Grupa: "{}": {}'.format(sender, m['group_thread_info']['name'], unicode(m['body'])))
-                    else:
-                        user = unicode(m['other_user_fbid'])
-                        if user == messenger.uid or user == unicode(m['sender_fbid']):
-                            user = 'Ja'
-                        elif user in friends:
-                            user = friends[user]['name']
-                        safe_print(u'{} -> {}: {}'.format(sender, user, m['body']))
+    rtc.make_pull()

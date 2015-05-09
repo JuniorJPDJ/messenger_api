@@ -3,6 +3,7 @@ __author__ = 'juniorjpdj'
 import json, os, mimetypes
 from MessengerAPI import str_base
 
+
 class MessengerCreateAttachment(object):
     def __init__(self, messenger):
         self.messenger = messenger
