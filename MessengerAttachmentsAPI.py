@@ -21,7 +21,7 @@ class Attachment(object):
         elif a['attach_type'] == 'sticker':
             return StickerAttachment(unicode(a['url']), int(a['metadata']['stickerID']), int(a['metadata']['packID']))
         elif a['attach_type'] == 'share':
-            return ShareAttachment(unicode(urlparse.parse_qs(a['url'].split('?')[1])['u']), unicode(a['name']['__html']))
+            return ShareAttachment(unicode(urlparse.parse_qs(a['url'].split('?')[1])['u'][0]), unicode(a['name']['__html']))
         else:
             return object.__new__(cls, a['url'])
 
