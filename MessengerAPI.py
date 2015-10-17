@@ -1,6 +1,15 @@
-__author__ = 'juniorjpdj'
-
 import requests, json, time, random
+
+__author__ = 'JuniorJPDJ'
+
+# DONE: add someone to group (done, but not working...)
+# TODO: kick someone from group
+# TODO: leave group
+# TODO: rename group
+# TODO: change group avatar
+# TODO: send typing status (stopped, started)
+# TODO: send message read status
+# TODO: show unread messages from time since program was not started
 
 
 def str_base(num, b=36, numerals="0123456789abcdefghijklmnopqrstuvwxyz"):
@@ -14,10 +23,10 @@ class NeedReconnectBeforePull(Exception):
 class Messenger(object):
     def __init__(self, email, pw):
         self.sess = requests.Session()
-        # self.sess.proxies.update({'https': 'https://127.0.0.1:8888'})
-        # self.sess.verify = False
-        # from requests.packages.urllib3.exceptions import InsecureRequestWarning
-        # requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+        self.sess.proxies.update({'https': 'https://127.0.0.1:8080'})
+        self.sess.verify = False
+        from requests.packages.urllib3.exceptions import InsecureRequestWarning
+        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
         self.sess.headers.update(
             {'User-agent': 'Mozilla/5.0 ;compatible; FBMsgClient/0.1; KaziCiota; +http://juniorjpdj.cf;'})
@@ -93,6 +102,19 @@ class Messenger(object):
 
         return self.send_req('/ajax/mercury/send_messages.php', 1, data)
 
+    # SHIT! It isn't working ;C
+    def add_to_group(self, group_id, users):
+        data = {'message_batch[0][action_type]': 'ma-type:log-message',
+                'message_batch[0][author]': 'fbid:' + self.uid,
+                'message_batch[0][source]': 'source:messenger:web',
+                'message_batch[0][log_message_type]': 'log:subscribe',
+                'message_batch[0][thread_fbid]': group_id,
+                'client': 'mercury', 'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
+
+        data.update(dict(map(lambda x: ['message_batch[0][log_message_data][added_participants][{}]'.format(users.index(x)), 'fbid:{}'.format(x)], users)))
+
+        return self.send_req('/ajax/mercury/send_messages.php', 1, data)
+
     def send_reconnect(self, reason=6):
         resp = self.send_req('/ajax/presence/reconnect.php', 0, {'reason': reason, 'fb_dtsg': self.dtsg_token})
         data = json.loads(resp.content[9:])
@@ -117,7 +139,7 @@ class Messenger(object):
         if self.tr:
             params.update({'traceid': self.tr})
 
-        resp = self.sess.get('https://' + self.pull_host + '.messenger.com/pull', params=params)
+        resp = self.sess.get('https://{}.messenger.com/pull'.format(self.pull_host), params=params)
         data = json.loads(resp.content[9:])
 
         if 'seq' in data:

@@ -1,7 +1,8 @@
-__author__ = 'juniorjpdj'
-
 import urlparse
 
+__author__ = 'JuniorJPDJ'
+
+# TODO: make attachment objects easy to send with message
 
 class Attachment(object):
     def __new__(cls, a):
@@ -21,7 +22,12 @@ class Attachment(object):
         elif a['attach_type'] == 'sticker':
             return StickerAttachment(unicode(a['url']), int(a['metadata']['stickerID']), int(a['metadata']['packID']))
         elif a['attach_type'] == 'share':
-            return ShareAttachment(unicode(urlparse.parse_qs(a['url'].split('?')[1])['u'][0]), unicode(a['name']['__html']))
+            # there is also error attachment included, so i need to do this shit, sorry
+            try:
+                url = unicode(urlparse.parse_qs(a['share']['uri'].split('?')[1])['u'][0])
+            except AttributeError or TypeError:
+                url = None
+            return ShareAttachment(url, unicode(a['share']['title']))
         else:
             return object.__new__(cls, a['url'])
 

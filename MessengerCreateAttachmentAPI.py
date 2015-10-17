@@ -1,11 +1,13 @@
-__author__ = 'juniorjpdj'
-
 import json, os, mimetypes
-from MessengerAPI import str_base
+from MessengerAPI import str_base, Messenger
+
+__author__ = 'JuniorJPDJ'
 
 
 class MessengerCreateAttachment(object):
     def __init__(self, messenger):
+        if not isinstance(messenger, Messenger):
+            raise TypeError("'messenger' has to be 'MessengerAPI.Messenger', not '{}'".format(type(messenger).__name__))
         self.messenger = messenger
 
     def attach_url(self, link):
