@@ -23,10 +23,10 @@ class NeedReconnectBeforePull(Exception):
 class Messenger(object):
     def __init__(self, email, pw):
         self.sess = requests.Session()
-        self.sess.proxies.update({'https': 'https://127.0.0.1:8080'})
-        self.sess.verify = False
-        from requests.packages.urllib3.exceptions import InsecureRequestWarning
-        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+        # self.sess.proxies.update({'https': 'https://127.0.0.1:8080'})
+        # self.sess.verify = False
+        # from requests.packages.urllib3.exceptions import InsecureRequestWarning
+        # requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
         self.sess.headers.update(
             {'User-agent': 'Mozilla/5.0 ;compatible; FBMsgClient/0.1; KaziCiota; +http://juniorjpdj.cf;'})
