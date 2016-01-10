@@ -2,14 +2,16 @@ import requests, json, time, random
 
 __author__ = 'JuniorJPDJ'
 
-# DONE: add someone to group (done, but not working...)
-# TODO: kick someone from group
-# TODO: leave group
-# TODO: rename group
-# TODO: change group avatar
+# DONE: add someone to thread
+# DONE: kick someone from thread
+# DONE: leave thread
+# DONE: rename thread
+# TODO: change thread image
 # TODO: send typing status (stopped, started)
 # TODO: send message read status
 # TODO: show unread messages from time since program was not started
+# TODO: change thread color theme
+# TODO: change custom name of pariticipant of thread
 
 
 def str_base(num, b=36, numerals="0123456789abcdefghijklmnopqrstuvwxyz"):
@@ -23,10 +25,10 @@ class NeedReconnectBeforePull(Exception):
 class Messenger(object):
     def __init__(self, email, pw):
         self.sess = requests.Session()
-        # self.sess.proxies.update({'https': 'https://127.0.0.1:8080'})
-        # self.sess.verify = False
-        # from requests.packages.urllib3.exceptions import InsecureRequestWarning
-        # requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+        self.sess.proxies.update({'https': 'https://127.0.0.1:8080'})
+        self.sess.verify = False
+        from requests.packages.urllib3.exceptions import InsecureRequestWarning
+        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
         self.sess.headers.update(
             {'User-agent': 'Mozilla/5.0 ;compatible; FBMsgClient/0.1; KaziCiota; +http://juniorjpdj.cf;'})
@@ -66,6 +68,19 @@ class Messenger(object):
         self.rev = data.split('revision":')[1].split(',')[0]
         self.uid = data.split('USER_ID":"')[1].split('"')[0]
 
+        o = u''
+        t = 0
+        for c in data.split('"mercuryPayload":')[1]:
+            if c == '{':
+                t += 1
+            elif c == "}":
+                t -= 1
+                if t == 0:
+                    o += '}'
+                    break
+            o += c
+        self.mercury_payload = json.loads(o)
+
         self.partition, self.user_channel, self.pull_host, self.seq = (None, None, None, None)
         self.sticky_token, self.sticky_pool, self.tr = (None, None, None)
 
@@ -102,18 +117,31 @@ class Messenger(object):
 
         return self.send_req('/ajax/mercury/send_messages.php', 1, data)
 
-    # SHIT! It isn't working ;C
-    def add_to_group(self, group_id, users):
+    def send_log_message(self, thread_id, log_message_type, additional_data):
         data = {'message_batch[0][action_type]': 'ma-type:log-message',
                 'message_batch[0][author]': 'fbid:' + self.uid,
                 'message_batch[0][source]': 'source:messenger:web',
-                'message_batch[0][log_message_type]': 'log:subscribe',
-                'message_batch[0][thread_fbid]': group_id,
-                'client': 'mercury', 'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
-
-        data.update(dict(map(lambda x: ['message_batch[0][log_message_data][added_participants][{}]'.format(users.index(x)), 'fbid:{}'.format(x)], users)))
+                'message_batch[0][log_message_type]': log_message_type,
+                'message_batch[0][thread_fbid]': thread_id,
+                'message_batch[0][offline_threading_id]': random.randint(0, 999999999999999999),
+                'client': 'messenger', 'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
+        data.update(additional_data)
 
         return self.send_req('/ajax/mercury/send_messages.php', 1, data)
+
+    def add_to_thread(self, thread_id, users):
+        return self.send_log_message(thread_id, 'log:subscribe', dict([['message_batch[0][log_message_data][added_participants][{}]'.format(users.index(x)), 'fbid:{}'.format(x)] for x in users]))
+
+    def kick_from_thread(self, thread_id, user):
+        data = {'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
+
+        return self.send_req('/chat/remove_participants/?uid={}&tid={}'.format(user, group_id), 1, data)
+
+    def leave_thread(self, thread_id):
+        return self.kick_from_thread(group_id, self.uid)
+
+    def rename_thread(self, thread_id, name):
+        return self.send_log_message(thread_id, 'log:thread-name', {'message_batch[0][log_message_data][name]': name})
 
     def send_reconnect(self, reason=6):
         resp = self.send_req('/ajax/presence/reconnect.php', 0, {'reason': reason, 'fb_dtsg': self.dtsg_token})

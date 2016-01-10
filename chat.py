@@ -85,13 +85,23 @@ def group_stopped_typing_handler(datetime, group_id, user_id):
 
 
 # noinspection PyUnusedLocal
-def started_typing_handler(datetime, to_id, from_id):
-    safe_print(unicode(datetime.strftime('[%H:%M.%S] {} started typing to {}')).format(from_id, to_id))
+def started_typing_handler(datetime, from_id):
+    safe_print(unicode(datetime.strftime('[%H:%M.%S] {} started typing to you')).format(from_id))
 
 
 # noinspection PyUnusedLocal
-def stopped_typing_handler(datetime, to_id, from_id):
-    safe_print(unicode(datetime.strftime('[%H:%M.%S] {} stopped typing to {}')).format(from_id, to_id))
+def stopped_typing_handler(datetime, from_id):
+    safe_print(unicode(datetime.strftime('[%H:%M.%S] {} stopped typing to you')).format(from_id))
+
+
+# noinspection PyUnusedLocal
+def thread_color_theme_change_handler(datetime, thread_id, author_id, color):
+    safe_print(unicode(datetime.strftime('[%H:%M.%S] {} changed color in thread {} to {}')).format(author_id, thread_id, color))
+
+
+# noinspection PyUnusedLocal
+def thread_participant_nickname_change_handler(datetime, thread_id, author_id, participant_id, nickname):
+    safe_print(unicode(datetime.strftime('[%H:%M.%S] {} changed nickname of {} in thread {} to {}')).format(author_id, participant_id, thread_id, nickname))
 
 
 print('Logging in')
@@ -120,6 +130,8 @@ rtc.register_handler('group_started_typing', group_started_typing_handler)
 rtc.register_handler('group_stopped_typing', group_stopped_typing_handler)
 rtc.register_handler('started_typing', started_typing_handler)
 rtc.register_handler('stopped_typing', stopped_typing_handler)
+rtc.register_handler('thread_color_theme_change', thread_color_theme_change_handler)
+rtc.register_handler('thread_participant_nickname_change', thread_participant_nickname_change_handler)
 
 while 1:
     rtc.make_pull()

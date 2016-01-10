@@ -7,14 +7,16 @@ from WTFException import WTFException
 __author__ = 'JuniorJPDJ'
 
 
-# DONE: handler for group leave
-# DONE: hanlder for kicking someone from group
-# DONE: handler for adding someone to group
-# DONE: handler for group rename
-# DONE: handler for change group avatar
+# DONE: handler for thread leave
+# DONE: hanlder for kicking someone from thread
+# DONE: handler for adding someone to thread
+# DONE: handler for thread rename
+# DONE: handler for change thread
 # DONE: handler for typing status
 # TODO: handler for message deliviery - i really dont know how to know what message was deliviered
 # DONE: handler for message read
+# DONE: handler for participant name change
+# DONE: handler for color theme change
 
 class MessengerRealTimeChat(object):
     def __init__(self, messenger):
@@ -28,7 +30,10 @@ class MessengerRealTimeChat(object):
         self.messenger.send_reconnect()
         self.friends = self.messenger.get_friends()
 
-    handler_types = ('group_msg', 'msg', 'own_group_msg', 'own_msg', 'group_leave', 'group_kick', 'group_add', 'group_rename', 'group_change_avatar', 'group_read', 'read', 'group_started_typing', 'group_stopped_typing', 'started_typing', 'stopped_typing')
+    handler_types = ('group_msg', 'msg', 'own_group_msg', 'own_msg', 'group_leave', 'group_kick', 'group_add',
+                     'group_rename', 'group_change_avatar', 'group_read', 'read', 'group_started_typing',
+                     'group_stopped_typing', 'started_typing', 'stopped_typing', 'thread_color_theme_change',
+                     'thread_participant_nickname_change')
 
     def register_handler(self, htype, handler):
         # group_msg_handler(datetime, (sender_id, sender_name), (group_id, group_name), message_body, attachment)
@@ -44,8 +49,10 @@ class MessengerRealTimeChat(object):
         # group_read_handler(datetime, group_id, reader)
         # group_started_typing_handler(datetime, group_id, user_id)
         # group_stopped_typing_handler(datetime, group_id, user_id)
-        # started_typing_handler(datetime, to_id, from_id)
-        # stopped_typing_handler(datetime, to_id, from_id)
+        # started_typing_handler(datetime, from_id)
+        # stopped_typing_handler(datetime, from_id)
+        # thread_color_theme_change_handler(datetime, thread_id, author_id, color)
+        # thread_participant_nickname_change_handler(datetime, thread_id, author_id, participant_id, nickname)
         assert htype in self.handler_types
         self.handlers[htype].add(handler)
 
@@ -62,7 +69,7 @@ class MessengerRealTimeChat(object):
                         # there is message incomming
                         m = i['message']
                         a = m['attachments'] if m['has_attachment'] else []
-                        a = tuple(map(lambda a: Attachment(a), a))
+                        a = tuple([Attachment(at) for at in a])
                         timestamp = datetime.datetime.fromtimestamp(int(m['timestamp']) / 1000.0)
                         if m['mid'] not in self.handled_msgs:
                             self.handled_msgs.append(m['mid'])
@@ -127,12 +134,14 @@ class MessengerRealTimeChat(object):
                 elif i['type'] == 'typ':
                     if i['st']:
                         # someone started typing at private chat
+                        print i
                         for h in self.handlers['started_typing']:
-                            h(datetime.datetime.now(), i['to'], i['from'])
+                            h(datetime.datetime.now(), i['from'])
                     else:
                         # someone stopped typing at private chat
+                        print i
                         for h in self.handlers['stopped_typing']:
-                            h(datetime.datetime.now(), i['to'], i['from'])
+                            h(datetime.datetime.now(), i['from'])
                 elif i['type'] == 'mercury':
                     # protocol in protocol, I love U Facebook <3
                     for a in i['actions']:
@@ -142,12 +151,21 @@ class MessengerRealTimeChat(object):
                                 # group rename
                                 for h in self.handlers['group_rename']:
                                     h(timestamp, a['author'][5:], a['thread_fbid'], a['log_message_data']['name'])
-
                             elif a['log_message_type'] == 'log:thread-image':
                                 # group avatar change
                                 avatar = Attachment(a['log_message_data']['image'])
                                 for h in self.handlers['group_change_avatar']:
                                     h(timestamp, a['author'][5:], a['thread_fbid'], avatar)
+                            elif a['log_message_type'] == 'log:generic-admin-text':
+                                # u serious fb? -.-
+                                if a['log_message_data']['message_type'] == 'change_thread_theme':
+                                    # color theme change
+                                    for h in self.handlers['thread_color_theme_change']:
+                                        h(timestamp, a['thread_fbid'], a['author'][5:], a['log_message_data']['untypedData']['theme_color'])
+                                elif a['log_message_data']['message_type'] == 'change_thread_nickname':
+                                    # participant nickname change
+                                    for h in self.handlers['thread_participant_nickname_change']:
+                                        h(timestamp, a['thread_fbid'], a['author'][5:], a['log_message_data']['untypedData']['participant_id'], a['log_message_data']['untypedData']['nickname'])
                 else:
                     pass
                     # moahr comming soon :D

@@ -43,7 +43,7 @@ class MessengerCreateAttachment(object):
                               params={'__user': self.messenger.uid, '__a': 1, '__req': str_base(self.messenger.reqid), '__rev': self.messenger.rev,
                                       'fb_dtsg': self.messenger.dtsg_token, 'ttstamp': self.messenger.ttstamp}, data={'images_only': 'false'},
                               files={'upload_{}'.format(self.messenger.uploadid):
-                                        (os.path.basename(filename), open(filename), mimetypes.guess_type(filename)[0] or 'application/octet-stream')})
+                                        (os.path.basename(filename), open(filename, 'rb'), mimetypes.guess_type(filename)[0] or 'application/octet-stream')})
 
         data = json.loads(resp.content[9:])['payload']['metadata'][0]
 
@@ -55,8 +55,9 @@ class MessengerCreateAttachment(object):
 
         if 'image_id' in data:
             attachment.update({'message_batch[0][image_ids][0]': data['image_id']})
-        else:
+        elif 'file_id' in data:
             attachment.update({'message_batch[0][file_ids][0]': data['file_id']})
+        elif
 
         return attachment
 
