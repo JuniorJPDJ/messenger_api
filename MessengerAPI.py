@@ -1,4 +1,4 @@
-import requests, json, time, random
+import requests, json, time, random, logging
 
 __author__ = 'JuniorJPDJ'
 
@@ -12,6 +12,7 @@ __author__ = 'JuniorJPDJ'
 # TODO: show unread messages from time since program was not started
 # TODO: change thread color theme
 # TODO: change custom name of pariticipant of thread
+# TODO: send last seen status
 
 
 def str_base(num, b=36, numerals="0123456789abcdefghijklmnopqrstuvwxyz"):
@@ -25,10 +26,11 @@ class NeedReconnectBeforePull(Exception):
 class Messenger(object):
     def __init__(self, email, pw):
         self.sess = requests.Session()
-        self.sess.proxies.update({'https': 'https://127.0.0.1:8080'})
-        self.sess.verify = False
-        from requests.packages.urllib3.exceptions import InsecureRequestWarning
-        requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+
+        # self.sess.proxies.update({'https': 'https://127.0.0.1:8080'})
+        # self.sess.verify = False
+        # from requests.packages.urllib3.exceptions import InsecureRequestWarning
+        # requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
         self.sess.headers.update(
             {'User-agent': 'Mozilla/5.0 ;compatible; FBMsgClient/0.1; KaziCiota; +http://juniorjpdj.cf;'})
@@ -98,7 +100,7 @@ class Messenger(object):
         return resp
 
     def send_msg(self, to, msg='', attachment=None, group=False):
-        to = str(to)
+        to = unicode(to)
         msg = unicode(msg)
         data = {'message_batch[0][action_type]': 'ma-type:user-generated-message',
                 'message_batch[0][author]': 'fbid:' + self.uid, 'message_batch[0][source]': 'source:messenger:web',

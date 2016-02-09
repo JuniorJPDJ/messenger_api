@@ -57,7 +57,7 @@ class MessengerCreateAttachment(object):
             attachment.update({'message_batch[0][image_ids][0]': data['image_id']})
         elif 'file_id' in data:
             attachment.update({'message_batch[0][file_ids][0]': data['file_id']})
-        elif
+        #elif
 
         return attachment
 

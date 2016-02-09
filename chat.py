@@ -10,6 +10,8 @@ if sys.platform == "win32":
 else:
     encoding = "utf8"
 
+logging.basicConfig(level=logging.INFO)
+
 
 def safe_print(msg):
     print(unicode(msg).encode(encoding))
