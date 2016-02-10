@@ -1,8 +1,8 @@
-import sys, getpass
+__author__ = 'JuniorJPDJ'
+
+import sys, getpass, logging
 from MessengerAPI import Messenger
 from MessengerRealTimeChatAPI import MessengerRealTimeChat
-
-__author__ = 'JuniorJPDJ'
 
 
 if sys.platform == "win32":
@@ -15,7 +15,6 @@ logging.basicConfig(level=logging.INFO)
 
 def safe_print(msg):
     print(unicode(msg).encode(encoding))
-
 
 def show_msg(date, sender, recipient, body, attachments):
     safe_print(unicode(date.strftime('[%H:%M.%S]  {} -> {}:{}{}')).format(sender, recipient, u' \'{}\''.format(body) if body else u'', u' + {}'.format(attachments) if len(attachments) else u''))

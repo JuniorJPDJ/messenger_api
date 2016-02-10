@@ -24,7 +24,7 @@ class NeedReconnectBeforePull(Exception):
 
 
 class Messenger(object):
-    def __init__(self, email, pw):
+    def __init__(self, email, pw, useragent='Mozilla/5.0 ;compatible; FBMsgClient/0.1; KaziCiota; +http://juniorjpdj.cf;'):
         self.sess = requests.Session()
 
         # self.sess.proxies.update({'https': 'https://127.0.0.1:8080'})
@@ -33,7 +33,7 @@ class Messenger(object):
         # requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
         self.sess.headers.update(
-            {'User-agent': 'Mozilla/5.0 ;compatible; FBMsgClient/0.1; KaziCiota; +http://juniorjpdj.cf;'})
+            {'User-agent': useragent})
 
         co = self.sess.get('https://www.messenger.com').content
 
@@ -100,6 +100,7 @@ class Messenger(object):
         return resp
 
     def send_msg(self, to, msg='', attachment=None, group=False):
+        # max length 20k chars, 10k unicoode chars
         to = unicode(to)
         msg = unicode(msg)
         data = {'message_batch[0][action_type]': 'ma-type:user-generated-message',
@@ -137,10 +138,10 @@ class Messenger(object):
     def kick_from_thread(self, thread_id, user):
         data = {'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
 
-        return self.send_req('/chat/remove_participants/?uid={}&tid={}'.format(user, group_id), 1, data)
+        return self.send_req('/chat/remove_participants/?uid={}&tid={}'.format(user, thread_id), 1, data)
 
     def leave_thread(self, thread_id):
-        return self.kick_from_thread(group_id, self.uid)
+        return self.kick_from_thread(thread_id, self.uid)
 
     def rename_thread(self, thread_id, name):
         return self.send_log_message(thread_id, 'log:thread-name', {'message_batch[0][log_message_data][name]': name})
