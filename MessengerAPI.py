@@ -1,39 +1,65 @@
-import requests, json, time, random, logging
+import requests, json, time, random
+from Exceptions import *
 
-__author__ = 'JuniorJPDJ'
+__author__  = 'JuniorJPDJ'
+__version__ = '0.2'
 
-# DONE: add someone to thread
-# DONE: kick someone from thread
-# DONE: leave thread
-# DONE: rename thread
+# Main features:
+# DONE: login
+# DONE: logout
+# DONE: send message
+# DONE: add users (list/tuple of users) to group thread
+# DONE: kick participant from group thread
+# DONE: leave group thread
+# DONE: rename group thread
+# DONE: send delivery receipt
+# DONE: send read status
+# DONE: send typing status
+# DONE: get thread list
+# DONE: get thread messages
+# DONE: get thread info
+# DONE: send pull request                                                   Used in MessengerPullParser
+# DONE: get users info
+# DONE: search
 # TODO: change thread image
-# TODO: send typing status (stopped, started)
-# TODO: send message read status
-# TODO: show unread messages from time since program was not started
-# TODO: change thread color theme
-# TODO: change custom name of pariticipant of thread
-# TODO: send last seen status
+
+# Additional features:
+# NOPE: unread_threads                                                      There is no need to use it. I think filtering at thread list is doing this well
+# NOPE: thread_sync                                                         I don't know what it really does, so at the moment I don't care about it
+# TODO: parse mercury_payload, make some methods to make use of this        will be done at objective version
+# TODO: show unread messages from time since program was not started        maybe can be done by thread_sync
+
+# Not easly possible:
+# TODO: change thread color theme                                           currently can't be done at messenger.com or facebook.com
+# TODO: change custom name of pariticipant of thread                        currently can't be done at messenger.com or facebook.com
 
 
 def str_base(num, b=36, numerals="0123456789abcdefghijklmnopqrstuvwxyz"):
     return ((num == 0) and numerals[0]) or (str_base(num // b, b, numerals).lstrip(numerals[0]) + numerals[num % b])
 
 
-class NeedReconnectBeforePull(Exception):
-    pass
+def check_for_messenger_error(req):
+    if req.status_code != 200:
+        raise MessengerException(req.status_code, 'HTTP Error', 'invalid request?')
+
+    out = json.loads(req.content[9:])
+    if 'error' in out:
+        raise MessengerException(out['error'], out['errorSummary'], out['errorDescription'])
 
 
-class Messenger(object):
-    def __init__(self, email, pw, useragent='Mozilla/5.0 ;compatible; FBMsgClient/0.1; KaziCiota; +http://juniorjpdj.cf;'):
+class MessengerAPI(object):
+    def __init__(self, login, pw, useragent='default'):
+        # login may also be email or phone number
         self.sess = requests.Session()
 
-        # self.sess.proxies.update({'https': 'https://127.0.0.1:8080'})
-        # self.sess.verify = False
-        # from requests.packages.urllib3.exceptions import InsecureRequestWarning
-        # requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
+        debug_proxy = False
+        if debug_proxy:
+            self.sess.proxies.update({'https': 'https://127.0.0.1:8080'})
+            self.sess.verify = False
+            from requests.packages.urllib3.exceptions import InsecureRequestWarning
+            requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
         self.sess.headers.update(
-            {'User-agent': useragent})
+            {'User-agent': 'Mozilla/5.0 ;compatible; PyMessengerAPI/{}; KaziCiota; +http://juniorjpdj.cf;'.format(__version__) if useragent == 'default' else useragent})
 
         co = self.sess.get('https://www.messenger.com').content
 
@@ -49,12 +75,17 @@ class Messenger(object):
         except IndexError:
             pass
 
-        self.sess.get('https://www.facebook.com/login/messenger_dot_com_iframe/', params={'redirect_uri': 'https://www.messenger.com/login/fb_iframe_target/?initial_request_id={}'.format(
-            initreqid), 'identifier': identifier, 'initial_request_id': initreqid})
+        self.sess.get('https://www.facebook.com/login/messenger_dot_com_iframe/',
+                      params={'redirect_uri': 'https://www.messenger.com/login/fb_iframe_target/?initial_request_id={}'.format
+                      (initreqid), 'identifier': identifier, 'initial_request_id': initreqid})
 
         res = self.sess.post('https://www.messenger.com/login/password/',
                              {'lsd': lsd_token, 'initial_request_id': initreqid, 'timezone': timezone, 'lgnrnd': lgnrnd,
-                              'lgnjs': lgnjs, 'email': email, 'pass': pw, 'default_persistent': 0}, headers={'Referer': 'https://www.messenger.com'})
+                              'lgnjs': lgnjs, 'email': login, 'pass': pw, 'default_persistent': 0}, headers={'Referer': 'https://www.messenger.com'})
+
+        if res.url != "https://www.messenger.com/" or res.status_code != 200:
+            raise LoggingInError
+
         data = res.content
 
         self.dtsg_token = data.split('"token":"')[1].split('"')[0]
@@ -99,26 +130,30 @@ class Messenger(object):
 
         return resp
 
-    def send_msg(self, to, msg='', attachment=None, group=False):
+    def send_msg(self, thread_id, msg='', attachment=None, group=False):
         # max length 20k chars, 10k unicoode chars
-        to = unicode(to)
+        thread_id = unicode(thread_id)
         msg = unicode(msg)
         data = {'message_batch[0][action_type]': 'ma-type:user-generated-message',
                 'message_batch[0][author]': 'fbid:' + self.uid, 'message_batch[0][source]': 'source:messenger:web',
                 'message_batch[0][body]': msg, 'message_batch[0][has_attachment]': 'false', 'message_batch[0][html_body]': 'false', 'client': 'mercury',
                 'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
         if group:
-            userdata = {'message_batch[0][thread_fbid]': to}
+            userdata = {'message_batch[0][thread_fbid]': thread_id}
         else:
-            userdata = {'message_batch[0][specific_to_list][0]': 'fbid:' + to,
+            userdata = {'message_batch[0][specific_to_list][0]': 'fbid:' + thread_id,
                         'message_batch[0][specific_to_list][1]': 'fbid:' + self.uid,
-                        'message_batch[0][client_thread_id]': 'user:' + to}
+                        'message_batch[0][client_thread_id]': 'user:' + thread_id}
         data.update(userdata)
 
         if attachment:
             data.update(attachment)
 
-        return self.send_req('/ajax/mercury/send_messages.php', 1, data)
+        req = self.send_req('/ajax/mercury/send_messages.php', 1, data)
+
+        check_for_messenger_error(req)
+
+        return json.loads(req.content[9:])['payload']['actions'][0]['message_id']
 
     def send_log_message(self, thread_id, log_message_type, additional_data):
         data = {'message_batch[0][action_type]': 'ma-type:log-message',
@@ -130,7 +165,11 @@ class Messenger(object):
                 'client': 'messenger', 'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
         data.update(additional_data)
 
-        return self.send_req('/ajax/mercury/send_messages.php', 1, data)
+        req = self.send_req('/ajax/mercury/send_messages.php', 1, data)
+
+        check_for_messenger_error(req)
+
+        return req
 
     def add_to_thread(self, thread_id, users):
         return self.send_log_message(thread_id, 'log:subscribe', dict([['message_batch[0][log_message_data][added_participants][{}]'.format(users.index(x)), 'fbid:{}'.format(x)] for x in users]))
@@ -138,7 +177,11 @@ class Messenger(object):
     def kick_from_thread(self, thread_id, user):
         data = {'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
 
-        return self.send_req('/chat/remove_participants/?uid={}&tid={}'.format(user, thread_id), 1, data)
+        req = self.send_req('/chat/remove_participants/?uid={}&tid={}'.format(user, thread_id), 1, data)
+
+        check_for_messenger_error(req)
+
+        return req
 
     def leave_thread(self, thread_id):
         return self.kick_from_thread(thread_id, self.uid)
@@ -156,7 +199,89 @@ class Messenger(object):
 
         return resp
 
-    def send_pull(self):
+    def send_delivery_receipt(self, msg_id, thread_id):
+        data = {'message_ids[0]': msg_id, 'thread_ids[{}][0]'.format(thread_id): msg_id,
+                'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
+
+        req = self.send_req('/ajax/mercury/delivery_receipts.php', 1, data)
+        check_for_messenger_error(req)
+        return req
+
+    def send_read_status(self, thread_id, timestamp=None):
+        if timestamp is None:
+            timestamp = int(time.time() * 1000)
+        data = {'ids[{}]'.format(thread_id): True, 'watermarkTimestamp': timestamp, 'shouldSendReadReceipt': True,
+                'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
+
+        req = self.send_req('/ajax/mercury/change_read_status.php', 1, data)
+        check_for_messenger_error(req)
+        return req
+
+    def send_typing(self, thread_id, typing=True, group=False):
+        data = {'typ': int(typing), 'thread': thread_id, 'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
+        if not group:
+            data.update({'to': thread_id})
+        req = self.send_req('/ajax/messaging/typ.php', 1, data)
+        check_for_messenger_error(req)
+        return req
+
+    def get_thread_list(self, folder='inbox', limit=10, offset=0, filter=None):
+        assert folder in ('inbox', 'pending', 'other')
+        assert filter in (None, 'unread')
+        data = {'{}[offset]'.format(folder): offset, '{}[limit]'.format(folder): limit,
+                'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
+        if filter is not None:
+            data.update({'{}[filter]'.format(folder): filter})
+        req = self.send_req('/ajax/mercury/threadlist_info.php', 1, data)
+        check_for_messenger_error(req)
+        return json.loads(req.content[9:])['payload']
+
+    def get_thread_messages(self, thread, limit=20, offset=0, group=False):
+        if group:
+            f = 'thread_fbids'
+        else:
+            f = 'user_ids'
+        data = {'messages[{}][{}][offset]'.format(f, thread): offset, 'messages[{}][{}][limit]'.format(f, thread): limit,
+                'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
+        req = self.send_req('/ajax/mercury/thread_info.php', 1, data)
+        check_for_messenger_error(req)
+        return json.loads(req.content[9:])['payload']
+
+    def get_threads_info(self, group_threads=(), user_threads=()):
+        data = {'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
+        i = 0
+        for t in group_threads:
+            data.update({'threads[thread_fbids][{}]'.format(i): t})
+            i += 1
+        i = 0
+        for t in user_threads:
+            data.update({'threads[user_ids][{}]'.format(i): t})
+            i += 1
+        req = self.send_req('/ajax/mercury/thread_info.php', 1, data)
+        check_for_messenger_error(req)
+        return json.loads(req.content[9:])['payload']
+
+    def get_users_info(self, users):
+        data = {'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
+        i = 0
+        for t in users:
+            data.update({'ids[{}]'.format(i): t})
+            i += 1
+        req = self.send_req('/chat/user_info/', 1, data)
+        check_for_messenger_error(req)
+        return json.loads(req.content[9:])['payload']
+
+    def get_all_users_info(self):
+        req = self.send_req('/chat/user_info_all/?viewer={}'.format(self.uid), 1, {'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp})
+        check_for_messenger_error(req)
+        return json.loads(req.content[9:])['payload']
+
+    def search_for_threads(self, value, existing_threads=(), limit=8):
+        req = self.send_req('/ajax/mercury/composer_query.php', 0, {'value':value, 'limit':limit, 'existing_ids': ','.join(existing_threads)})
+        check_for_messenger_error(req)
+        return json.loads(req.content[9:])['payload']
+
+    def pull(self):
         if self.partition is None or self.user_channel is None or self.pull_host is None or self.seq is None:
             raise NeedReconnectBeforePull
 
@@ -185,8 +310,7 @@ class Messenger(object):
         elif data['t'] == 'msg':
             return data['ms']
 
-        return None
+        return []
 
-    def get_friends(self):
-        resp = self.send_req('/chat/user_info_all/?viewer={}'.format(self.uid), 1, {'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp})
-        return json.loads(resp.content[9:])['payload']
+    def logout(self):
+        self.sess.post('https://www.messenger.com/logout/', {'fb_dtsg': self.dtsg_token})

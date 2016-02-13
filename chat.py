@@ -1,8 +1,8 @@
-__author__ = 'JuniorJPDJ'
-
 import sys, getpass, logging
-from MessengerAPI import Messenger
-from MessengerRealTimeChatAPI import MessengerRealTimeChat
+from MessengerAPI import MessengerAPI
+from MessengerPullParser import MessengerRealTimeChat
+
+__author__ = 'JuniorJPDJ'
 
 
 if sys.platform == "win32":
@@ -10,11 +10,12 @@ if sys.platform == "win32":
 else:
     encoding = "utf8"
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)
 
 
 def safe_print(msg):
     print(unicode(msg).encode(encoding))
+
 
 def show_msg(date, sender, recipient, body, attachments):
     safe_print(unicode(date.strftime('[%H:%M.%S]  {} -> {}:{}{}')).format(sender, recipient, u' \'{}\''.format(body) if body else u'', u' + {}'.format(attachments) if len(attachments) else u''))
@@ -111,7 +112,7 @@ if sys.argv[1] and sys.argv[2]:
 else:
     email = raw_input('E-mail: ')
     pw = getpass.getpass()
-messenger = Messenger(email, pw)
+messenger = MessengerAPI(email, pw)
 print('Logged in')
 
 rtc = MessengerRealTimeChat(messenger)

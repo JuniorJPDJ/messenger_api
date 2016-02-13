@@ -1,12 +1,12 @@
 import json, os, mimetypes
-from MessengerAPI import str_base, Messenger
+from MessengerAPI import str_base, MessengerAPI
 
 __author__ = 'JuniorJPDJ'
 
 
 class MessengerCreateAttachment(object):
     def __init__(self, messenger):
-        if not isinstance(messenger, Messenger):
+        if not isinstance(messenger, MessengerAPI):
             raise TypeError("'messenger' has to be 'MessengerAPI.Messenger', not '{}'".format(type(messenger).__name__))
         self.messenger = messenger
 
