@@ -1,6 +1,9 @@
-import sys, getpass, logging
-from MessengerAPI import MessengerAPI
-from MessengerPullParser import MessengerRealTimeChat
+import getpass
+import logging
+import sys
+
+from base.MessengerAPI import MessengerAPI
+from base.MessengerPullParser import MessengerPullParser
 
 __author__ = 'JuniorJPDJ'
 
@@ -115,7 +118,7 @@ else:
 messenger = MessengerAPI(email, pw)
 print('Logged in')
 
-rtc = MessengerRealTimeChat(messenger)
+rtc = MessengerPullParser(messenger)
 
 rtc.register_handler('group_msg', group_msg_handler)
 rtc.register_handler('msg', msg_handler)

@@ -1,8 +1,11 @@
-import json, os, mimetypes
-from MessengerAPI import str_base, MessengerAPI
+import json
+import mimetypes
+import os
+from base.MessengerAPI import str_base, MessengerAPI
 
 __author__ = 'JuniorJPDJ'
 
+# TODO: merge with Attachments.py
 
 class MessengerCreateAttachment(object):
     def __init__(self, messenger):

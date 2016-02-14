@@ -1,12 +1,16 @@
-import time, datetime, logging
+import datetime
+import logging
+import time
 from collections import deque, defaultdict
-from MessengerAttachment import Attachment
-from MessengerAPI import MessengerAPI
-from Exceptions import WTFException
+
+from Attachments import Attachment
+from base.Exceptions import WTFException
+from base.MessengerAPI import MessengerAPI
 
 __author__ = 'JuniorJPDJ'
 
-# TODO: rewrite for using handlers for action types, not if/elif for each one
+# DONE: rewrite for using handlers for action types, not if/elif for each one (v2)
+# This file stays here only for compatibility reasons
 
 
 class MessengerPullParser(object):
@@ -61,7 +65,7 @@ class MessengerPullParser(object):
                     # there is message incomming
                     m = i['message']
                     a = m['attachments'] if m['has_attachment'] else []
-                    a = tuple([Attachment(at) for at in a])
+                    a = tuple([Attachment.from_dict(at) for at in a])
                     timestamp = datetime.datetime.fromtimestamp(int(m['timestamp']) / 1000.0)
                     if m['mid'] not in self.handled_msgs:
                         self.handled_msgs.append(m['mid'])
@@ -128,12 +132,10 @@ class MessengerPullParser(object):
             elif i['type'] == 'typ':
                 if i['st']:
                     # someone started typing at private chat
-                    print i
                     for h in self.handlers['started_typing']:
                         h(datetime.datetime.now(), i['from'])
                 else:
                     # someone stopped typing at private chat
-                    print i
                     for h in self.handlers['stopped_typing']:
                         h(datetime.datetime.now(), i['from'])
             elif i['type'] == 'mercury':
@@ -161,7 +163,7 @@ class MessengerPullParser(object):
                                 for h in self.handlers['thread_participant_nickname_change']:
                                     h(timestamp, a['thread_fbid'], a['author'][5:], a['log_message_data']['untypedData']['participant_id'], a['log_message_data']['untypedData']['nickname'])
             elif i['type'] == 'buddylist_overlay':
-                # TODO: make use of this
+                # NOPE: make use of buddylist_overlay (won't be done, I'm no longer developing this file)
                 pass
             elif i['type'] in ('delta', 'deltaflow', 'inbox', 'm_read_receipt'):
                 # wut is delta and deltaflow?

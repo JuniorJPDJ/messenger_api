@@ -1,9 +1,14 @@
+TODO: Docs              *I gonna die, You know?
+
 Objects:
-TODO: User
-TODO: Thread
-TODO: GroupThread
-TODO: Message
+DONE: Messenger
+DONE: Person
+DONE: Thread
+DONE: GroupThread
+DONE: PrivateThread
+DONE: Message
 DONE: Attachment
+TODO: Action
 TODO: StickerPack
 TODO: Sticker
 TODO: StickerShop

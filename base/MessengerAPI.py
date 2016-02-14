@@ -1,8 +1,12 @@
-import requests, json, time, random
-from Exceptions import *
+import json
+import random
+import requests
+import time
+
+from base.Exceptions import *
 
 __author__  = 'JuniorJPDJ'
-__version__ = '0.2'
+__version__ = 0.2
 
 # Main features:
 # DONE: login
@@ -26,8 +30,7 @@ __version__ = '0.2'
 # Additional features:
 # NOPE: unread_threads                                                      There is no need to use it. I think filtering at thread list is doing this well
 # NOPE: thread_sync                                                         I don't know what it really does, so at the moment I don't care about it
-# TODO: parse mercury_payload, make some methods to make use of this        will be done at objective version
-# TODO: show unread messages from time since program was not started        maybe can be done by thread_sync
+# DONE: parse mercury_payload, make some methods to make use of this        will be done at objective version
 
 # Not easly possible:
 # TODO: change thread color theme                                           currently can't be done at messenger.com or facebook.com
@@ -132,6 +135,8 @@ class MessengerAPI(object):
 
     def send_msg(self, thread_id, msg='', attachment=None, group=False):
         # max length 20k chars, 10k unicoode chars
+        if attachment is None:
+            attachment = {}
         thread_id = unicode(thread_id)
         msg = unicode(msg)
         data = {'message_batch[0][action_type]': 'ma-type:user-generated-message',
@@ -145,15 +150,13 @@ class MessengerAPI(object):
                         'message_batch[0][specific_to_list][1]': 'fbid:' + self.uid,
                         'message_batch[0][client_thread_id]': 'user:' + thread_id}
         data.update(userdata)
-
-        if attachment:
-            data.update(attachment)
+        data.update(attachment)
 
         req = self.send_req('/ajax/mercury/send_messages.php', 1, data)
 
         check_for_messenger_error(req)
 
-        return json.loads(req.content[9:])['payload']['actions'][0]['message_id']
+        return json.loads(req.content[9:])['payload']
 
     def send_log_message(self, thread_id, log_message_type, additional_data):
         data = {'message_batch[0][action_type]': 'ma-type:log-message',
@@ -276,14 +279,14 @@ class MessengerAPI(object):
         check_for_messenger_error(req)
         return json.loads(req.content[9:])['payload']
 
-    def search_for_threads(self, value, existing_threads=(), limit=8):
-        req = self.send_req('/ajax/mercury/composer_query.php', 0, {'value':value, 'limit':limit, 'existing_ids': ','.join(existing_threads)})
+    def search(self, query, existing_threads=(), limit=8):
+        req = self.send_req('/ajax/mercury/composer_query.php', 0, {'value':query, 'limit':limit, 'existing_ids': ','.join(existing_threads)})
         check_for_messenger_error(req)
         return json.loads(req.content[9:])['payload']
 
     def pull(self):
         if self.partition is None or self.user_channel is None or self.pull_host is None or self.seq is None:
-            raise NeedReconnectBeforePull
+            raise NeedReconnect
 
         params = {'channel': self.user_channel, 'seq': self.seq, 'partition': self.partition, 'clientid': self.sessid,
                   'cb': str_base(random.randint(0, 1048575)), 'idle': 0, 'cap': 0, 'msgs_recv': self.seq,
