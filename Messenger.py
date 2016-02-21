@@ -1,7 +1,7 @@
 from datetime import datetime
 from base.MessengerAPI import MessengerAPI
-from base.MessengerPullParserV2 import MessengerPullParser
 from base.Exceptions import UserNotFoundException, UnknownThreadException, UnknownPersonException, MessengerException
+from MessengerPullParser import MessengerPullParser
 from Person import Person
 from Thread import Thread, PrivateThread
 
@@ -14,7 +14,7 @@ __version__ = 0.1
 class Messenger(object):
     def __init__(self, login, pw, useragent='default'):
         self.msgapi = MessengerAPI(login, pw, useragent)
-        self._pparser = MessengerPullParser(self.msgapi)
+        self._pparser = MessengerPullParser(self)
         self._people = {}
         self._threads = {}
         self._threadlist_offset = 0
@@ -73,6 +73,18 @@ class Messenger(object):
         except UnknownThreadException:
             try:
                 self.get_person(fbid)
+            except UserNotFoundException:
+                try:
+                    data = self.msgapi.get_threads_info((fbid,))
+                except MessengerException:
+                    raise UnknownThreadException
+                else:
+                    if 'threads' not in data or not data['threads']:
+                        raise UnknownThreadException
+                    thread = Thread.from_dict(self, data['threads'][0])
+                    self._threads[fbid] = thread
+                    return thread
+            else:
                 data = self.msgapi.get_threads_info((), (fbid,))
                 if 'threads' in data and len(data['threads']):
                     thread = Thread.from_dict(self, data['threads'][0])
@@ -80,16 +92,6 @@ class Messenger(object):
                     thread = PrivateThread(self, fbid, True, False, 'inbox', None, None, None, 0, 0, datetime.now(), datetime.now())
                 self._threads[fbid] = thread
                 return thread
-            except UserNotFoundException:
-                try:
-                    data = self.msgapi.get_threads_info((fbid,))
-                    if 'threads' not in data or not len(data['threads']):
-                        raise UnknownThreadException
-                    thread = Thread.from_dict(self, data['threads'][0])
-                    self._threads[fbid] = thread
-                    return thread
-                except MessengerException:
-                    raise UnknownThreadException
 
     def load_more_threads(self, amount=10):
         return self.parse_threadlist(self.msgapi.get_thread_list(limit=amount, offset=self._threadlist_offset))

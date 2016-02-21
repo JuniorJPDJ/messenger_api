@@ -89,7 +89,7 @@ class MessengerPullParser(object):
                             for h in self.handlers['msg']:
                                 h(timestamp, (int(m['sender_fbid']), unicode(m['sender_name'])), unicode(m['body']), a)
                 elif i['event'] == 'delivery_receipt' and i['delivered'] == True:
-                    # deliviered to someone
+                    # delivered to someone
                     for h in self.handlers['delivery']:
                         h(datetime.datetime.fromtimestamp(int(i['timestamp'])), i['thread_fbid'])
                 elif i['event'] == 'read_receipt':
@@ -149,7 +149,7 @@ class MessengerPullParser(object):
                                 h(timestamp, a['author'][5:], a['thread_fbid'], a['log_message_data']['name'])
                         elif a['log_message_type'] == 'log:thread-image':
                             # group avatar change
-                            avatar = Attachment(a['log_message_data']['image'])
+                            avatar = Attachment.from_dict(a['log_message_data']['image'])
                             for h in self.handlers['group_change_avatar']:
                                 h(timestamp, a['author'][5:], a['thread_fbid'], avatar)
                         elif a['log_message_type'] == 'log:generic-admin-text':

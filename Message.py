@@ -5,9 +5,9 @@ __author__ = 'JuniorJPDJ'
 
 
 class Message(object):
-    def __init__(self, thread, sender, mid, time, body, attachments=()):
+    def __init__(self, thread, author, mid, time, body, attachments=()):
         self.id, self.time, self.body, self.attachments = mid, time, body, attachments
-        self.thread, self.sender, self.deliviered = thread, sender, False
+        self.thread, self.author, self.deliviered = thread, author, False
 
     @classmethod
     def from_pull(cls, messenger, data):

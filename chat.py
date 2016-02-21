@@ -1,9 +1,8 @@
 import getpass
 import logging
 import sys
-
 from base.MessengerAPI import MessengerAPI
-from base.MessengerPullParser import MessengerPullParser
+from base.MessengerPullParserV1 import MessengerPullParser
 
 __author__ = 'JuniorJPDJ'
 

@@ -21,10 +21,6 @@ class WTFException(Exception):
     pass
 
 
-class AlreadyHandledExceptions(Exception):
-    pass
-
-
 class UserNotFoundException(Exception):
     pass
 

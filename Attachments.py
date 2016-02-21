@@ -43,7 +43,7 @@ class FileAttachment(Attachment):
         Attachment.__init__(self, url)
         self.name = name
 
-    def __unicode__(self):
+    def __str__(self):
         return u'<FileAttachment with name "{}">'.format(self.name)
 
     def __repr__(self):
@@ -55,7 +55,7 @@ class VoiceAttachment(Attachment):
         Attachment.__init__(self, url)
         self.duration = duration
 
-    def __unicode__(self):
+    def __str__(self):
         return u'<VoiceAttachment with {} seconds duration>'.format(self.duration / 1000.0)
 
     def __repr__(self):
@@ -67,7 +67,7 @@ class PhotoAttachment(Attachment):
         Attachment.__init__(self, url)
         self.fbid, self.height, self.width = fbid, height, width
 
-    def __unicode__(self):
+    def __str__(self):
         return u'<PhotoAttachment ({}x{})>'.format(self.width, self.height)
 
     def __repr__(self):
@@ -79,7 +79,7 @@ class AnimatedImageAttachment(Attachment):
         Attachment.__init__(self, url)
         self.fbid, self.height, self.width = fbid, height, width
 
-    def __unicode__(self):
+    def __str__(self):
         return u'<AnimatedImageAttachment ({}x{})>'.format(self.width, self.height)
 
     def __repr__(self):
@@ -91,7 +91,7 @@ class VideoAttachment(Attachment):
         Attachment.__init__(self, url)
         self.fbid, self.height, self.width, self.duration = fbid, height, width, duration
 
-    def __unicode__(self):
+    def __str__(self):
         return u'<VideoAttachment ({}x{}) with {} seconds duration>'.format(self.width, self.height, self.duration)
 
     def __repr__(self):
@@ -103,7 +103,7 @@ class StickerAttachment(Attachment):
         Attachment.__init__(self, url)
         self.stickerid, self.packid = stickerid, packid
 
-    def __unicode__(self):
+    def __str__(self):
         return u'<StickerAttachment with stickerID = "{}">'.format(self.stickerid)
 
     def __repr__(self):
@@ -115,7 +115,7 @@ class ShareAttachment(Attachment):
         Attachment.__init__(self, url)
         self.name = name
 
-    def __unicode__(self):
+    def __str__(self):
         return u'<ShareAttachment with url = "{}">'.format(self.url)
 
     def __repr__(self):
