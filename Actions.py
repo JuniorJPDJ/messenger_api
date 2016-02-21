@@ -29,108 +29,137 @@ class Action(object):
             elif data['event'] == 'read_receipt':
                 return ReadAction.from_pull(msg, data)
             else:
-                return Action.unknown(msg, data)
+                return cls.unknown(msg, data)
         elif data['type'] in ('ttyp', 'typ'):
             return TypingAction.from_pull(msg, data)
         elif data['type'] == 'mercury':
             out = []
             for a in data['actions']:
                 if a['action_type'] == 'ma-type:log-message':
-                    if a['log_message_type'] == 'log:subscribe':
-                        out.append(ThreadParticipantAddAction.from_pull(msg, a))
-                    elif a['log_message_type'] == 'log:unsubscribe':
-                        if len(a['log_message_data']['removed_participants']) == 1 and a['log_message_data']['removed_participants'][0] == a['author']:
-                            out.append(ThreadParticipantLeaveAction.from_pull(msg, a))
-                        else:
-                            out.append(ThreadParticipantKickAction.from_pull(msg, a))
-                    elif a['log_message_type'] == 'log:thread-name':
-                        out.append(ThreadRenameAction.from_pull(msg, a))
-                    elif a['log_message_type'] == 'log:thread-image':
-                        out.append(ThreadImageChangeAction.from_pull(msg, a))
-                    elif a['log_message_type'] == 'log:generic-admin-text':
-                        if a['log_message_data']['message_type'] == 'change_thread_theme':
-                            out.append(ThreadThemeColorChangeAction.from_pull(msg, a))
-                        elif a['log_message_data']['message_type'] == 'change_thread_nickname':
-                            out.append(ThreadParticipantNameChangeAction.from_pull(msg, a))
-                        else:
-                            out.append(Action.unknown(msg, a))
-                    else:
-                        out.append(Action.unknown(msg, a))
+                    out.append(LogMessageAction.from_pull(msg, a))
                 else:
                     out.append(Action.unknown(msg, a))
             return tuple(out)
         else:
-            return Action.unknown(msg, data)
+            return cls.unknown(msg, data)
+
+
+class LogMessageAction(Action):
+    def __init__(self, msg, time, thread, author, mid, body):
+        Action.__init__(self, msg)
+        self.time, self.thread, self.author, self.mid, self.body = time, thread, author, mid, body
+
+    @classmethod
+    def unknown(cls, msg, data):
+        f = cls(msg, datetime.fromtimestamp(data['timestamp'] / 1000.0), msg.get_thread(int(data['thread_fbid'])), msg.get_person(int(data['author'][5:])), data['message_id'], data['log_message_body'])
+        f.data = data
+        return data
+
+    @classmethod
+    def from_pull(cls, msg, data):
+        if data['log_message_type'] == 'log:subscribe':
+            return ThreadParticipantAddAction.from_pull(msg, data)
+        elif data['log_message_type'] == 'log:unsubscribe':
+            if len(data['log_message_data']['removed_participants']) == 1 and data['log_message_data']['removed_participants'][0] == data['author']:
+                return ThreadParticipantLeaveAction.from_pull(msg, data)
+            else:
+                return ThreadParticipantKickAction.from_pull(msg, data)
+        elif data['log_message_type'] == 'log:thread-name':
+            return ThreadRenameAction.from_pull(msg, data)
+        elif data['log_message_type'] == 'log:thread-image':
+            return ThreadImageChangeAction.from_pull(msg, data)
+        elif data['log_message_type'] == 'log:generic-admin-text':
+            if data['log_message_data']['message_type'] == 'change_thread_theme':
+                return ThreadThemeColorChangeAction.from_pull(msg, data)
+            elif data['log_message_data']['message_type'] == 'change_thread_nickname':
+                return ThreadParticipantNicknameChangeAction.from_pull(msg, data)
+            elif data['log_message_data']['message_type'] == 'change_thread_icon':
+                return ThreadEmoticonChangeAction.from_pull(msg, data)
+            else:
+                return cls.unknown(msg, data)
+        else:
+            return cls.unknown(msg, data)
 
     @classmethod
     def from_thread_info(cls, thread, data):
-        pass
+        if data['action_type'] == 'ma-type:user-generated-message':
+            return Message.from_thread_info(thread, data)
+        elif data['action_type'] == 'ma-type:log-message':
+            return cls.from_pull(thread.messenger, data)
+        else:
+            return Action.unknown(thread.messenger, data)
 
 
-class ThreadParticipantLeaveAction(Action):
-    def __init__(self, msg, time, thread, person, mid, body):
-        Action.__init__(self, msg)
-        self.time, self.thread, self.person, self.mid, self.body = time, thread, person, mid, body
-
+class ThreadParticipantLeaveAction(LogMessageAction):
     @classmethod
     def from_pull(cls, msg, data):
         return cls(msg, datetime.fromtimestamp(data['timestamp'] / 1000.0), msg.get_thread(int(data['thread_fbid'])), msg.get_person(int(data['author'][5:])), data['message_id'], data['log_message_body'])
 
 
-class ThreadParticipantKickAction(Action):
+class ThreadParticipantKickAction(LogMessageAction):
     def __init__(self, msg, time, thread, author, mid, body, removed_participants):
-        Action.__init__(self, msg)
-        self.time, self.thread, self.removed_participants, self.author, self.mid, self.body = time, thread, removed_participants, author, mid, body
+        LogMessageAction.__init__(self, msg, time, thread, author, mid, body)
+        self.removed_participants = removed_participants
 
     @classmethod
     def from_pull(cls, msg, data):
         return cls(msg, datetime.fromtimestamp(data['timestamp'] / 1000.0), msg.get_thread(int(data['thread_fbid'])), msg.get_person(int(data['author'][5:])), data['message_id'], data['log_message_body'], [msg.get_person(int(p[5:])) for p in data['log_message_data']['removed_participants']])
 
 
-class ThreadParticipantAddAction(Action):
+class ThreadParticipantAddAction(LogMessageAction):
     def __init__(self, msg, time, thread, author, mid, body, added_participants):
-        Action.__init__(self, msg)
-        self.time, self.thread, self.added_participants, self.author, self.mid, self.body = time, thread, added_participants, author, mid, body
+        LogMessageAction.__init__(self, msg, time, thread, author, mid, body)
+        self.added_participants = added_participants
 
     @classmethod
     def from_pull(cls, msg, data):
         return cls(msg, datetime.fromtimestamp(data['timestamp'] / 1000.0), msg.get_thread(int(data['thread_fbid'])), msg.get_person(int(data['author'][5:])), data['message_id'], data['log_message_body'], [msg.get_person(int(p[5:])) for p in data['log_message_data']['added_participants']])
 
 
-class ThreadParticipantNameChangeAction(Action):
+class ThreadParticipantNicknameChangeAction(LogMessageAction):
     def __init__(self, msg, time, thread, author, mid, body, participant, name):
-        Action.__init__(self, msg)
-        self.time, self.thread, self.author, self.mid, self.body, self.participant, self.name = time, thread, author, mid, body, participant, name
+        LogMessageAction.__init__(self, msg, time, thread, author, mid, body)
+        self.participant, self.name = participant, name
 
     @classmethod
     def from_pull(cls, msg, data):
         return cls(msg, datetime.fromtimestamp(data['timestamp'] / 1000.0), msg.get_thread(int(data['thread_fbid'])), msg.get_person(int(data['author'][5:])), data['message_id'], data['log_message_body'], msg.get_person(int(data['log_message_data']['untypedData']['participant_id'])), data['log_message_data']['untypedData']['nickname'])
 
 
-class ThreadRenameAction(Action):
+class ThreadRenameAction(LogMessageAction):
     def __init__(self, msg, time, thread, author, mid, body, name):
-        Action.__init__(self, msg)
-        self.time, self.thread, self.author, self.mid, self.body, self.name = time, thread, author, mid, body, name
+        LogMessageAction.__init__(self, msg, time, thread, author, mid, body)
+        self.name = name
 
     @classmethod
     def from_pull(cls, msg, data):
         return cls(msg, datetime.fromtimestamp(data['timestamp'] / 1000.0), msg.get_thread(int(data['thread_fbid'])), msg.get_person(int(data['author'][5:])), data['message_id'], data['log_message_body'], data['log_message_data']['name'])
 
 
-class ThreadImageChangeAction(Action):
+class ThreadImageChangeAction(LogMessageAction):
     def __init__(self, msg, time, thread, author, mid, body, image):
-        Action.__init__(self, msg)
-        self.time, self.thread, self.author, self.mid, self.body, self.image = time, thread, author, mid, body, image
+        LogMessageAction.__init__(self, msg, time, thread, author, mid, body)
+        self.image = image
 
     @classmethod
     def from_pull(cls, msg, data):
         return cls(msg, datetime.fromtimestamp(data['timestamp'] / 1000.0), msg.get_thread(int(data['thread_fbid'])), msg.get_person(int(data['author'][5:])), data['message_id'], data['log_message_body'], Attachment.from_dict(data['log_message_data']['image']))
 
 
-class ThreadThemeColorChangeAction(Action):
+class ThreadEmoticonChangeAction(LogMessageAction):
+    def __init__(self, msg, time, thread, author, mid, body, emoticon):
+        LogMessageAction.__init__(self, msg, time, thread, author, mid, body)
+        self.emoticon = emoticon
+
+    @classmethod
+    def from_pull(cls, msg, data):
+        return cls(msg, datetime.fromtimestamp(data['timestamp'] / 1000.0), msg.get_thread(int(data['thread_fbid'])), msg.get_person(int(data['author'][5:])), data['message_id'], data['log_message_body'], data['log_message_data']['untypedData']['thread_icon'])
+
+
+class ThreadThemeColorChangeAction(LogMessageAction):
     def __init__(self, msg, time, thread, author, mid, body, color):
-        Action.__init__(self, msg)
-        self.time, self.thread, self.author, self.mid, self.body, self.color = time, thread, author, mid, body, color
+        LogMessageAction.__init__(self, msg, time, thread, author, mid, body)
+        self.color = color
 
     @classmethod
     def from_pull(cls, msg, data):

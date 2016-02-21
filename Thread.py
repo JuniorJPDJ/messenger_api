@@ -1,5 +1,6 @@
 from datetime import datetime
 from Message import Message
+from Actions import LogMessageAction
 
 __author__ = 'JuniorJPDJ'
 
@@ -35,10 +36,9 @@ class Thread(object):
         self.messenger.msgapi.send_typing(self.fbid, typing, self.group)
 
     def load_older_messages(self, amount=30):
-        # TODO: fix loading history, log messages should crash it
         data = self.messenger.msgapi.get_thread_messages(self.fbid, amount, len(self.messages), self.group)
         data = data['actions'] if 'actions' in data else []
-        msgs = [Message.from_thread_info(self, m) for m in data]
+        msgs = [LogMessageAction.from_thread_info(self, m) for m in data]
         self.messages = msgs + self.messages
         return msgs
 
