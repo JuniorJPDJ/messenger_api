@@ -37,7 +37,7 @@ class MessengerCreateAttachment(object):
 
             return out
 
-        return makedata(json.loads(resp.content[9:])['payload']['share_data'], 'message_batch[0][shareable_attachment]')
+        return makedata(json.loads(resp.text[9:])['payload']['share_data'], 'message_batch[0][shareable_attachment]')
 
     def attach_file(self, filename):
         self.messenger.uploadid += 1
@@ -48,7 +48,7 @@ class MessengerCreateAttachment(object):
                               files={'upload_{}'.format(self.messenger.uploadid):
                                         (os.path.basename(filename), open(filename, 'rb'), mimetypes.guess_type(filename)[0] or 'application/octet-stream')})
 
-        data = json.loads(resp.content[9:])['payload']['metadata'][0]
+        data = json.loads(resp.text[9:])['payload']['metadata'][0]
 
         attachment = {'message_batch[0][has_attachment]': 'true',
                       'message_batch[0][preview_attachments][0][upload_id]': 'upload_{}'.format(self.messenger.uploadid),
