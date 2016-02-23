@@ -2,8 +2,12 @@ import json
 import random
 import requests
 import time
-
 from base.Exceptions import *
+
+try:
+    unicode()
+except NameError:
+    unicode = str  # python3 support
 
 __author__  = 'JuniorJPDJ'
 __version__ = 0.2
@@ -45,7 +49,7 @@ def check_for_messenger_error(req):
     if req.status_code != 200:
         raise MessengerException(req.status_code, 'HTTP Error', 'invalid request?')
 
-    out = json.loads(req.content[9:])
+    out = json.loads(req.text[9:])
     if 'error' in out:
         raise MessengerException(out['error'], out['errorSummary'], out['errorDescription'])
 
@@ -64,7 +68,7 @@ class MessengerAPI(object):
         self.sess.headers.update(
             {'User-agent': 'Mozilla/5.0 ;compatible; PyMessengerAPI/{}; KaziCiota; +http://juniorjpdj.cf;'.format(__version__) if useragent == 'default' else useragent})
 
-        co = self.sess.get('https://www.messenger.com').content
+        co = self.sess.get('https://www.messenger.com').text
 
         lsd_token = co.split('"token":"')[1].split('"')[0]
         initreqid = co.split('initialRequestID":"')[1].split('"')[0]
@@ -89,7 +93,7 @@ class MessengerAPI(object):
         if res.url != "https://www.messenger.com/" or res.status_code != 200:
             raise LoggingInError
 
-        data = res.content
+        data = res.text
 
         self.dtsg_token = data.split('"token":"')[1].split('"')[0]
 
@@ -156,7 +160,7 @@ class MessengerAPI(object):
 
         check_for_messenger_error(req)
 
-        return json.loads(req.content[9:])['payload']
+        return json.loads(req.text[9:])['payload']
 
     def send_log_message(self, thread_id, log_message_type, additional_data):
         data = {'message_batch[0][action_type]': 'ma-type:log-message',
@@ -194,7 +198,7 @@ class MessengerAPI(object):
 
     def send_reconnect(self, reason=6):
         resp = self.send_req('/ajax/presence/reconnect.php', 0, {'reason': reason, 'fb_dtsg': self.dtsg_token})
-        data = json.loads(resp.content[9:])
+        data = json.loads(resp.text[9:])
         self.partition = data['payload']['partition']
         self.user_channel = data['payload']['user_channel']
         self.pull_host = '{}-{}'.format(random.randint(0, 7), data['payload']['host'])
@@ -237,7 +241,7 @@ class MessengerAPI(object):
             data.update({'{}[filter]'.format(folder): filter})
         req = self.send_req('/ajax/mercury/threadlist_info.php', 1, data)
         check_for_messenger_error(req)
-        return json.loads(req.content[9:])['payload']
+        return json.loads(req.text[9:])['payload']
 
     def get_thread_messages(self, thread, limit=20, offset=0, group=False):
         if group:
@@ -248,7 +252,7 @@ class MessengerAPI(object):
                 'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
         req = self.send_req('/ajax/mercury/thread_info.php', 1, data)
         check_for_messenger_error(req)
-        return json.loads(req.content[9:])['payload']
+        return json.loads(req.text[9:])['payload']
 
     def get_threads_info(self, group_threads=(), user_threads=()):
         data = {'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
@@ -262,7 +266,7 @@ class MessengerAPI(object):
             i += 1
         req = self.send_req('/ajax/mercury/thread_info.php', 1, data)
         check_for_messenger_error(req)
-        return json.loads(req.content[9:])['payload']
+        return json.loads(req.text[9:])['payload']
 
     def get_users_info(self, users):
         data = {'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
@@ -272,17 +276,17 @@ class MessengerAPI(object):
             i += 1
         req = self.send_req('/chat/user_info/', 1, data)
         check_for_messenger_error(req)
-        return json.loads(req.content[9:])['payload']
+        return json.loads(req.text[9:])['payload']
 
     def get_all_users_info(self):
         req = self.send_req('/chat/user_info_all/?viewer={}'.format(self.uid), 1, {'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp})
         check_for_messenger_error(req)
-        return json.loads(req.content[9:])['payload']
+        return json.loads(req.text[9:])['payload']
 
     def search(self, query, existing_threads=(), limit=8):
         req = self.send_req('/ajax/mercury/composer_query.php', 0, {'value':query, 'limit':limit, 'existing_ids': ','.join(existing_threads)})
         check_for_messenger_error(req)
-        return json.loads(req.content[9:])['payload']
+        return json.loads(req.text[9:])['payload']
 
     def pull(self):
         if self.partition is None or self.user_channel is None or self.pull_host is None or self.seq is None:
@@ -299,7 +303,7 @@ class MessengerAPI(object):
             params.update({'traceid': self.tr})
 
         resp = self.sess.get('https://{}.messenger.com/pull'.format(self.pull_host), params=params)
-        data = json.loads(resp.content[9:])
+        data = json.loads(resp.text[9:])
 
         if 'seq' in data:
             self.seq = data['seq']

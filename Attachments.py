@@ -1,4 +1,12 @@
-import urlparse
+try:
+    import urlparse
+except ImportError:
+    import urllib.parse as urlparse  # python3 support
+
+try:
+    unicode()
+except NameError:
+    unicode = str  # python3 support
 
 __author__ = 'JuniorJPDJ'
 

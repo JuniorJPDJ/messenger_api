@@ -4,9 +4,7 @@ from datetime import datetime
 
 __author__ = 'JuniorJPDJ'
 
-# TODO: emoticon change action
 # TODO: buddylist_overlay action
-# TODO: from_thread_info
 
 
 class Action(object):

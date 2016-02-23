@@ -6,6 +6,7 @@ from base.MessengerPullParserV1 import MessengerPullParser
 
 __author__ = 'JuniorJPDJ'
 
+# Very old, please don't even look at code, it's not working anymore (at least it should not)
 
 if sys.platform == "win32":
     encoding = sys.stdout.encoding

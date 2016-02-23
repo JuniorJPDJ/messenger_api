@@ -7,6 +7,11 @@ from Attachments import Attachment
 from base.Exceptions import WTFException
 from base.MessengerAPI import MessengerAPI
 
+try:
+    unicode()
+except NameError:
+    unicode = str  # python3 support
+
 __author__ = 'JuniorJPDJ'
 
 # DONE: rewrite for using handlers for action types, not if/elif for each one (v2)

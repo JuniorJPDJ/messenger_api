@@ -7,7 +7,7 @@ __author__ = 'JuniorJPDJ'
 class Message(object):
     def __init__(self, thread, author, mid, time, body, attachments=()):
         self.id, self.time, self.body, self.attachments = mid, time, body, attachments
-        self.thread, self.author, self.deliviered = thread, author, False
+        self.thread, self.author, self.delivered = thread, author, False
 
     @classmethod
     def from_pull(cls, messenger, data):
@@ -24,5 +24,5 @@ class Message(object):
         return cls(thread, thread.messenger.me, data['message_id'], datetime.fromtimestamp(data['timestamp'] / 1000.0), body, [Attachment.from_dict(a) for a in data['attachments']])
 
     def send_deliviery_receipt(self):
-        if not self.deliviered and not self.sender == self.thread.messenger.me:
+        if not self.delivered and not self.sender == self.thread.messenger.me:
             self.thread.messenger.msgapi.send_delivery_receipt(self.id, self.thread.fbid)

@@ -23,7 +23,6 @@ class Messenger(object):
         self.me = self.get_person(int(self.msgapi.uid))
 
     def parse_threadlist(self, threadlist):
-        # TODO: load thread read/delivery time (read = roger, delivery = delivery_receipts)
         if 'participants' in threadlist:
             for p in threadlist['participants']:
                 if p['fbid'] not in self._people:
@@ -39,8 +38,16 @@ class Messenger(object):
             for th in threadlist['threads']:
                 if t == th['thread_id']:
                     if int(th['thread_fbid']) not in self.ordered_thread_list:
-                        self.ordered_thread_list.append(int(th['thread_fbid']))
+                        self.ordered_thread_list.append(self.get_thread(int(th['thread_fbid'])))
                     break
+        if 'delivery_receipts' in threadlist:
+            for t in threadlist['delivery_receipts']:
+                self.get_thread(int(t['thread_fbid'] if t['thread_fbid'] is not None else t['other_user_fbid'])).last_delivery = datetime.fromtimestamp(t['time'] / 1000.0)
+        if 'roger' in threadlist:
+            for t in threadlist['roger'].items():
+                th = self.get_thread(int(t[0]))
+                for p in t[1]:
+                    th.last_read[self.get_person(int(p))] = datetime.fromtimestamp(t[1][p] / 1000.0)
         return new_threads
 
     def get_person_from_cache(self, fbid):
@@ -89,7 +96,7 @@ class Messenger(object):
                 if 'threads' in data and len(data['threads']):
                     thread = Thread.from_dict(self, data['threads'][0])
                 else:
-                    thread = PrivateThread(self, fbid, True, False, 'inbox', None, None, None, 0, 0, datetime.now(), datetime.now())
+                    thread = PrivateThread(self, fbid, True, False, 'inbox', None, {}, None, 0, 0, datetime.now(), datetime.now())
                 self._threads[fbid] = thread
                 return thread
 
