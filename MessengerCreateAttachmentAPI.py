@@ -7,6 +7,7 @@ __author__ = 'JuniorJPDJ'
 
 # TODO: merge with Attachments.py
 
+
 class MessengerCreateAttachment(object):
     def __init__(self, messenger):
         if not isinstance(messenger, MessengerAPI):

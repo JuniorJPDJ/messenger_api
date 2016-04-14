@@ -8,10 +8,10 @@ __author__ = 'JuniorJPDJ'
 class Thread(object):
     group = False
 
-    def __init__(self, messenger, fbid, can_reply, archived, folder, custom_color, custom_nicknames, custom_like_icon, message_count, unread_count, last_msg_time, last_read_time):
+    def __init__(self, messenger, fbid, can_reply, archived, folder, custom_color, custom_nicknames, custom_emoji, message_count, unread_count, last_msg_time, last_read_time):
         self.messenger = messenger
         self.fbid, self.can_reply, self.archived, self.folder = fbid, can_reply, archived, folder
-        self.custom_color, self.custom_nicknames, self.custom_like_icon = custom_color, custom_nicknames, custom_like_icon
+        self.custom_color, self.custom_nicknames, self.custom_emoji = custom_color, custom_nicknames, custom_emoji
         self.message_count, self.unread_count, self.last_msg_time, self.last_read_time = message_count, unread_count, last_msg_time, last_read_time
         self.messages = []
         self.last_delivery = None
@@ -33,6 +33,7 @@ class Thread(object):
 
     def make_read(self):
         self.messenger.msgapi.send_read_status(self.fbid)
+        self.unread_count = 0
 
     def send_typing(self, typing=True):
         self.messenger.msgapi.send_typing(self.fbid, typing, self.group)
@@ -52,6 +53,24 @@ class Thread(object):
         else:
             return person.name
 
+    def rename(self, name):
+        pass
+
+    def set_participant_name(self, person, name):
+        self.messenger.msgapi.change_custom_nickname(self.fbid, person.fbid, name)
+        if name:
+            self.custom_nicknames[person] = name
+        elif person in self.custom_nicknames:
+            del self.custom_nicknames[person]
+
+    def set_custom_emoji(self, emoji):
+        self.messenger.msgapi.change_custom_emoji(self.fbid, emoji)
+        self.custom_emoji = emoji
+
+    def set_custom_color(self, color):
+        self.messenger.msgapi.change_custom_color(self.fbid, color)
+        self.custom_color = color
+
 
 class PrivateThread(Thread):
     @classmethod
@@ -61,12 +80,15 @@ class PrivateThread(Thread):
     def get_name(self):
         return self.get_participant_name(self.messenger.get_person(self.fbid))
 
+    def rename(self, name):
+        self.set_participant_name(self.messenger.get_person(self.fbid), name)
+
 
 class GroupThread(Thread):
     group = True
 
-    def __init__(self, messenger, fbid, can_reply, archived, folder, custom_color, custom_nicknames, custom_like_icon, message_count, unread_count, last_msg_time, last_read_time, participants, former_participants, name, image):
-        Thread.__init__(self, messenger, fbid, can_reply, archived, folder, custom_color, custom_nicknames, custom_like_icon, message_count, unread_count, last_msg_time, last_read_time)
+    def __init__(self, messenger, fbid, can_reply, archived, folder, custom_color, custom_nicknames, custom_emoji, message_count, unread_count, last_msg_time, last_read_time, participants, former_participants, name, image):
+        Thread.__init__(self, messenger, fbid, can_reply, archived, folder, custom_color, custom_nicknames, custom_emoji, message_count, unread_count, last_msg_time, last_read_time)
         self.participants, self.former_participants, self.name, self.image = participants, former_participants, name, image
 
     @classmethod

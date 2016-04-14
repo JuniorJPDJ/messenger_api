@@ -2,11 +2,11 @@ import json
 import random
 import requests
 import time
+import sys
 from base.Exceptions import *
 
-try:
-    unicode()
-except NameError:
+
+if sys.version_info >= (3, 0):
     unicode = str  # python3 support
 
 __author__  = 'JuniorJPDJ'
@@ -29,16 +29,14 @@ __version__ = 0.2
 # DONE: send pull request                                                   Used in MessengerPullParser
 # DONE: get users info
 # DONE: search
+# DONE: change thread color theme
+# DONE: change custom name of pariticipant of thread
 # TODO: change thread image
 
 # Additional features:
 # NOPE: unread_threads                                                      There is no need to use it. I think filtering at thread list is doing this well
 # NOPE: thread_sync                                                         I don't know what it really does, so at the moment I don't care about it
-# DONE: parse mercury_payload, make some methods to make use of this        will be done at objective version
-
-# Not easly possible:
-# TODO: change thread color theme                                           currently can't be done at messenger.com or facebook.com
-# TODO: change custom name of pariticipant of thread                        currently can't be done at messenger.com or facebook.com
+# DONE: parse mercury_payload, make some methods to make use of this        done at objective version
 
 
 def str_base(num, b=36, numerals="0123456789abcdefghijklmnopqrstuvwxyz"):
@@ -143,10 +141,12 @@ class MessengerAPI(object):
             attachment = {}
         thread_id = unicode(thread_id)
         msg = unicode(msg)
+        mid = random.randint(0, 999999999999999999)
         data = {'message_batch[0][action_type]': 'ma-type:user-generated-message',
                 'message_batch[0][author]': 'fbid:' + self.uid, 'message_batch[0][source]': 'source:messenger:web',
-                'message_batch[0][body]': msg, 'message_batch[0][has_attachment]': 'false', 'message_batch[0][html_body]': 'false', 'client': 'mercury',
-                'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
+                'message_batch[0][body]': msg, 'message_batch[0][has_attachment]': 'false', 'message_batch[0][html_body]': 'false',
+                'message_batch[0][timestamp]': int(time.time() * 1000),
+                'client': 'mercury', 'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
         if group:
             userdata = {'message_batch[0][thread_fbid]': thread_id}
         else:
@@ -177,6 +177,28 @@ class MessengerAPI(object):
         check_for_messenger_error(req)
 
         return req
+
+    def send_messaging_request(self, type, source, thread_id, additional_data):
+        data = {'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp, 'thread_or_other_fbid': thread_id}
+        data.update(additional_data)
+
+        req = self.send_req('/messaging/{type}/?source={source}'.format(type=type, source=source), 1, data)
+
+        check_for_messenger_error(req)
+
+        return req
+
+    def change_custom_nickname(self, thread_id, user, nickname):
+        data = {'participant_id': user, 'nickname': nickname}
+        return self.send_messaging_request('save_thread_nickname', 'thread_settings', thread_id, data)
+
+    def change_custom_color(self, thread_id, color):
+        data = {'color_choice': color}
+        return self.send_messaging_request('save_thread_color', 'thread_settings', thread_id, data)
+
+    def change_custom_emoji(self, thread_id, emoji):
+        data = {'emoji_choice': emoji}
+        return self.send_messaging_request('save_thread_emoji', 'thread_settings', thread_id, data)
 
     def add_to_thread(self, thread_id, users):
         return self.send_log_message(thread_id, 'log:subscribe', dict([['message_batch[0][log_message_data][added_participants][{}]'.format(users.index(x)), 'fbid:{}'.format(x)] for x in users]))
