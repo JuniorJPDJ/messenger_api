@@ -1,6 +1,6 @@
 from datetime import datetime
-from Message import Message
-from Actions import LogMessageAction
+from .Message import Message
+from .Actions import LogMessageAction
 
 __author__ = 'JuniorJPDJ'
 

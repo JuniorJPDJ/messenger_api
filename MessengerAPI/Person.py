@@ -1,5 +1,5 @@
 from enum import Enum
-from base.Exceptions import UnknownDictFormatException
+from .base.Exceptions import UnknownDictFormatException
 
 __author__ = 'JuniorJPDJ'
 

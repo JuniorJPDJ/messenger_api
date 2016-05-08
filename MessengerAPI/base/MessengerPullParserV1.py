@@ -1,15 +1,14 @@
 import datetime
 import logging
 import time
+import sys
 from collections import deque, defaultdict
 
-from Attachments import Attachment
-from base.Exceptions import WTFException
-from base.MessengerAPI import MessengerAPI
+from ..Attachments import Attachment
+from .Exceptions import WTFException
+from .MessengerAPI import MessengerAPI
 
-try:
-    unicode()
-except NameError:
+if sys.version_info >= (3, 0):
     unicode = str  # python3 support
 
 __author__ = 'JuniorJPDJ'

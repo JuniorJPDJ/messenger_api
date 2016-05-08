@@ -3,7 +3,7 @@ import random
 import requests
 import time
 import sys
-from base.Exceptions import *
+from .Exceptions import *
 
 
 if sys.version_info >= (3, 0):
@@ -141,7 +141,6 @@ class MessengerAPI(object):
             attachment = {}
         thread_id = unicode(thread_id)
         msg = unicode(msg)
-        mid = random.randint(0, 999999999999999999)
         data = {'message_batch[0][action_type]': 'ma-type:user-generated-message',
                 'message_batch[0][author]': 'fbid:' + self.uid, 'message_batch[0][source]': 'source:messenger:web',
                 'message_batch[0][body]': msg, 'message_batch[0][has_attachment]': 'false', 'message_batch[0][html_body]': 'false',
@@ -306,7 +305,7 @@ class MessengerAPI(object):
         return json.loads(req.text[9:])['payload']
 
     def search(self, query, existing_threads=(), limit=8):
-        req = self.send_req('/ajax/mercury/composer_query.php', 0, {'value':query, 'limit':limit, 'existing_ids': ','.join(existing_threads)})
+        req = self.send_req('/ajax/mercury/composer_query.php', 0, {'value': query, 'limit': limit, 'existing_ids': ','.join(existing_threads)})
         check_for_messenger_error(req)
         return json.loads(req.text[9:])['payload']
 

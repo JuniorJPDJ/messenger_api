@@ -1,9 +1,9 @@
 from datetime import datetime
-from base.MessengerAPI import MessengerAPI
-from base.Exceptions import UserNotFoundException, UnknownThreadException, UnknownPersonException, MessengerException
-from MessengerPullParser import MessengerPullParser
-from Person import Person
-from Thread import Thread, PrivateThread
+from .base.MessengerAPI import MessengerAPI
+from .base.Exceptions import UserNotFoundException, UnknownThreadException, UnknownPersonException, MessengerException
+from .MessengerPullParser import MessengerPullParser
+from .Person import Person
+from .Thread import Thread, PrivateThread
 
 __author__  = 'JuniorJPDJ'
 __version__ = 0.1

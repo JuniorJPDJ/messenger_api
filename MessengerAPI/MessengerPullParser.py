@@ -1,7 +1,7 @@
 import time
 
-from base.Exceptions import NeedReconnect
-from Actions import Action
+from .base.Exceptions import NeedReconnect
+from .Actions import Action
 
 __author__ = 'JuniorJPDJ'
 

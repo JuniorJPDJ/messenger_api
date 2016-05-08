@@ -1,5 +1,5 @@
-from Message import Message
-from Attachments import Attachment
+from .Message import Message
+from .Attachments import Attachment
 from datetime import datetime
 
 __author__ = 'JuniorJPDJ'

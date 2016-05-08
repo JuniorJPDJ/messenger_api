@@ -1,12 +1,16 @@
 import getpass
 import logging
 import sys
-from base.MessengerAPI import MessengerAPI
-from base.MessengerPullParserV1 import MessengerPullParser
+from MessengerAPI.base.MessengerAPI import MessengerAPI
+from MessengerAPI.base.MessengerPullParserV1 import MessengerPullParser
+
+if sys.version_info >= (3, 0):
+    unicode = str  # python3 support
+    raw_input = input
 
 __author__ = 'JuniorJPDJ'
 
-# Very old, please don't even look at code, it's not working anymore (at least it should not)
+# This file is using legacy API and may not work as it should
 
 if sys.platform == "win32":
     encoding = sys.stdout.encoding
@@ -25,38 +29,38 @@ def show_msg(date, sender, recipient, body, attachments):
 
 
 # noinspection PyUnusedLocal
-def group_msg_handler(datetime, (sender_id, sender_name), (group_id, group_name), message_body, attachments):
-    show_msg(datetime, sender_name, u'Group \'{}\''.format(group_name), message_body, attachments)
+def group_msg_handler(datetime, sender, group, message_body, attachments):
+    show_msg(datetime, sender[1], u'Group \'{}\''.format(group[1]), message_body, attachments)
 
 
 # noinspection PyUnusedLocal
-def msg_handler(datetime, (sender_id, sender_name), message_body, attachments):
-    show_msg(datetime, sender_name, u'Me', message_body, attachments)
+def msg_handler(datetime, sender, message_body, attachments):
+    show_msg(datetime, sender[1], u'Me', message_body, attachments)
 
 
 # noinspection PyUnusedLocal
-def own_group_msg_handler(datetime, (group_id, group_name), message_body, attachments):
-    show_msg(datetime, u'Me', u'Group \'{}\''.format(group_name), message_body, attachments)
+def own_group_msg_handler(datetime, group, message_body, attachments):
+    show_msg(datetime, u'Me', u'Group \'{}\''.format(group[1]), message_body, attachments)
 
 
 # noinspection PyUnusedLocal
-def own_msg_handler(datetime, (recipient_id, recipient_name), message_body, attachments):
-    show_msg(datetime, u'Me', recipient_name, message_body, attachments)
+def own_msg_handler(datetime, recipient, message_body, attachments):
+    show_msg(datetime, u'Me', recipient[1], message_body, attachments)
 
 
 # noinspection PyUnusedLocal
-def group_leave_handler(datetime, (user_id, user_name), (group_id, group_name)):
-    safe_print(unicode(datetime.strftime('[%H:%M.%S] {} left the group \'{}\'')).format(user_name, group_name))
+def group_leave_handler(datetime, user, group):
+    safe_print(unicode(datetime.strftime('[%H:%M.%S] {} left the group \'{}\'')).format(user[1], group[1]))
 
 
 # noinspection PyUnusedLocal
-def group_kick_handler(datetime, (kicker_id, kicker_name), (user_id, user_name), (group_id, group_name)):
-    safe_print(unicode(datetime.strftime('[%H:%M.%S] {} has been kicked from the group \'{}\' by {}')).format(user_name, group_name, kicker_name))
+def group_kick_handler(datetime, kicker, user, group):
+    safe_print(unicode(datetime.strftime('[%H:%M.%S] {} has been kicked from the group \'{}\' by {}')).format(user[1], group[1], kicker[1]))
 
 
 # noinspection PyUnusedLocal
-def group_add_handler(datetime, (adder_id, adder_name), (user_id, user_name), (group_id, group_name)):
-    safe_print(unicode(datetime.strftime('[%H:%M.%S] {} has been added to the group \'{}\' by {}')).format(user_name, group_name, adder_name))
+def group_add_handler(datetime, adder, user, group):
+    safe_print(unicode(datetime.strftime('[%H:%M.%S] {} has been added to the group \'{}\' by {}')).format(user[1], group[1], adder[1]))
 
 
 # noinspection PyUnusedLocal

@@ -1,12 +1,10 @@
-try:
-    import urlparse
-except ImportError:
-    import urllib.parse as urlparse  # python3 support
+import sys
 
-try:
-    unicode()
-except NameError:
+if sys.version_info >= (3, 0):
     unicode = str  # python3 support
+    import urllib.parse as urlparse
+else:
+    import urlparse
 
 __author__ = 'JuniorJPDJ'
 
