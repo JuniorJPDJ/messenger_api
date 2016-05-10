@@ -50,13 +50,12 @@ logging.info('Getting thread {}'.format(thread))
 thread = msg.get_thread(thread)
 logging.info('Thread name: {}'.format(thread.get_name()))
 
-# not working atm
-'''name = thread.get_name()
+name = thread.get_name()
 newname = randomword(15)
 logging.info('Changing name to {}'.format(newname))
 thread.rename(newname)
 logging.info('Setting it back')
-thread.rename(name)'''
+thread.rename(name)
 
 logging.info('Sending random message')
 thread.send_message(randomword(64))
@@ -85,9 +84,8 @@ for p in thread.participants:
 logging.info('Getting person')
 person = msg.get_person(person)
 
-# not working atm
-'''logging.info('Adding person to thread')
-thread.add_people([person])'''
+logging.info('Adding person to thread')
+thread.add_people([person])
 
 logging.info('Kicking person from thread')
 thread.kick_person(person)

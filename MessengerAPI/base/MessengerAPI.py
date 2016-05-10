@@ -142,8 +142,11 @@ class MessengerAPI(object):
         thread_id = unicode(thread_id)
         msg = unicode(msg)
         data = {'message_batch[0][action_type]': 'ma-type:user-generated-message',
-                'message_batch[0][author]': 'fbid:' + self.uid, 'message_batch[0][source]': 'source:messenger:web',
-                'message_batch[0][body]': msg, 'message_batch[0][has_attachment]': 'false', 'message_batch[0][html_body]': 'false',
+                'message_batch[0][author]': 'fbid:' + self.uid,
+                'message_batch[0][source]': 'source:messenger:web',
+                'message_batch[0][body]': msg,
+                'message_batch[0][has_attachment]': 'false',
+                'message_batch[0][html_body]': 'false',
                 'message_batch[0][timestamp]': int(time.time() * 1000),
                 'client': 'mercury', 'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
         if group:
@@ -168,6 +171,7 @@ class MessengerAPI(object):
                 'message_batch[0][log_message_type]': log_message_type,
                 'message_batch[0][thread_fbid]': thread_id,
                 'message_batch[0][offline_threading_id]': random.randint(0, 999999999999999999),
+                'message_batch[0][timestamp]': int(time.time() * 1000),
                 'client': 'messenger', 'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
         data.update(additional_data)
 
