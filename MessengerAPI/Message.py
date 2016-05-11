@@ -15,6 +15,16 @@ class Message(object):
         return cls(thread, messenger.get_person(data['sender_fbid']), data['mid'], datetime.fromtimestamp(data['timestamp'] / 1000.0), data['body'], [Attachment.from_dict(a) for a in data['attachments']])
 
     @classmethod
+    def from_pull_delta(cls, msg, data):
+        thread = msg.get_thread(int(data['messageMetadata']['threadKey']['otherUserFbId' if 'otherUserFbId' in data['messageMetadata']['threadKey'] else 'threadFbId']))
+        attachments = []
+        if 'attachments' in data:
+            for a in data['attachments']:
+                attachments.append(Attachment.from_dict(a['mercury']))
+
+        return cls(thread, msg.get_person(int(data['messageMetadata']['actorFbId'])), data['messageMetadata']['messageId'], datetime.fromtimestamp(int(data['messageMetadata']['timestamp']) / 1000.0), data['body'] if 'body' in data else '', tuple(attachments))
+
+    @classmethod
     def from_thread_info(cls, thread, data):
         return cls(thread, thread.messenger.get_person(int(data['author'][5:])), data['message_id'], datetime.fromtimestamp(data['timestamp'] / 1000.0), data['body'], [Attachment.from_dict(a) for a in data['attachments']])
 

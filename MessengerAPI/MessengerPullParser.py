@@ -29,7 +29,9 @@ class MessengerPullParser(object):
         self._lastpulltstamp = time.time()
         for i in data:
             a = Action.from_pull(self.msg, i)
-            if isinstance(a, tuple):
+            if a is None:
+                continue
+            elif isinstance(a, tuple):
                 for ac in a:
                     for h in self._action_handlers:
                         h(ac)

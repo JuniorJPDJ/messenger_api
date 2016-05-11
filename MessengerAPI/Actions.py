@@ -21,11 +21,20 @@ class Action(object):
     def from_pull(cls, msg, data):
         if data['type'] == 'messaging':
             if data['event'] == 'deliver':
-                return Message.from_pull(msg, data['message'])
+                # now in delta
+                # return Message.from_pull(msg, data['message'])
+                return None
             elif data['event'] == 'delivery_receipt' and data['delivered'] == True:
-                return DeliveryAction.from_pull(msg, data)
+                # now in delta
+                # return DeliveryAction.from_pull(msg, data)
+                return None
             elif data['event'] == 'read_receipt':
-                return ReadAction.from_pull(msg, data)
+                # now in delta
+                # return ReadAction.from_pull(msg, data)
+                return None
+            elif data['event'] == 'read':
+                # the same as delta MarkRead
+                return None
             else:
                 return cls.unknown(msg, data)
         elif data['type'] in ('ttyp', 'typ'):
@@ -38,6 +47,26 @@ class Action(object):
                 else:
                     out.append(Action.unknown(msg, a))
             return tuple(out)
+        elif data['type'] == 'delta':
+            deltaclass = data['delta']['class']
+            if deltaclass == 'NoOp':
+                # does nothing?
+                pass
+            elif deltaclass == 'NewMessage':
+                return Message.from_pull_delta(msg, data['delta'])
+            # elif deltaclass == 'MarkRead':
+                # ?!
+                # maybe when you read messages in other client
+                # pass
+            elif deltaclass == 'ReadReceipt':
+                return ReadAction.from_pull_delta(msg, data['delta'])
+            elif deltaclass == 'DeliveryReceipt':
+                return DeliveryAction.from_pull_delta(msg, data['delta'])
+            # elif deltaclass == 'ThreadMuteSettings':
+                # TODO: Update thread mute action
+                # pass
+            else:
+                return cls.unknown(msg, data)
         else:
             return cls.unknown(msg, data)
 
@@ -173,6 +202,10 @@ class DeliveryAction(Action):
     def from_pull(cls, msg, data):
         return cls(msg, datetime.fromtimestamp(data['timestamp'] / 1000.0), msg.get_thread(data['thread_fbid']))
 
+    @classmethod
+    def from_pull_delta(cls, msg, data):
+        return cls(msg, datetime.fromtimestamp(int(data['deliveredWatermarkTimestampMs']) / 1000.0), msg.get_thread(data['threadKey']['otherUserFbId']))
+
 
 class ReadAction(Action):
     def __init__(self, msg, time, thread, reader):
@@ -181,7 +214,13 @@ class ReadAction(Action):
 
     @classmethod
     def from_pull(cls, msg, data):
-        return cls(msg, datetime.fromtimestamp(data['time'] / 1000.0), msg.get_thread(data['thread_fbid'] if 'thread_fbid' in data else data['reader']), msg.get_person(data['reader']))
+        return cls(msg, datetime.fromtimestamp(data['time'] / 1000.0), msg.get_thread(int(data['thread_fbid'] if 'thread_fbid' in data else data['reader'])), msg.get_person(int(data['reader'])))
+
+    @classmethod
+    def from_pull_delta(cls, msg, data):
+        thread = msg.get_thread(int(data['threadKey']['otherUserFbId' if 'otherUserFbId' in data['threadKey'] else 'threadFbId']))
+        reader = msg.get_person(int(data['actorFbId'] if 'actorFbId' in data else data['threadKey']['otherUserFbId']))
+        return cls(msg, datetime.fromtimestamp(int(data['actionTimestampMs']) / 1000.0), thread, reader)
 
 
 class TypingAction(Action):
