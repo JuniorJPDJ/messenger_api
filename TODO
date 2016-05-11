@@ -1,11 +1,10 @@
 TODO: Docs              *I gonna die, You know?*
 TODO: setuptools
 
-DONE: Fix adding to thread
-DONE: Fix renaming thread
 
+TODO: Forwarding attachments
 TODO: Set mute options of thread
-TODO: Load mute status from thread
+DONE: Load mute status from thread
 TODO: Action for buddylist_overlay (la = last seen)
 
 Objects:

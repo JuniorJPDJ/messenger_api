@@ -19,8 +19,8 @@ class Messenger(object):
         self._threads = {}
         self._threadlist_offset = 0
         self.ordered_thread_list = []
-        self.parse_threadlist(self.msgapi.mercury_payload)
         self.me = self.get_person(int(self.msgapi.uid))
+        self.parse_threadlist(self.msgapi.mercury_payload)
 
     def parse_threadlist(self, threadlist):
         if 'participants' in threadlist:
@@ -57,6 +57,7 @@ class Messenger(object):
             raise UnknownPersonException
 
     def get_person(self, fbid):
+        assert isinstance(fbid, int)
         try:
             return self.get_person_from_cache(fbid)
         except UnknownPersonException:
@@ -74,6 +75,7 @@ class Messenger(object):
             raise UnknownThreadException
 
     def get_thread(self, fbid):
+        assert isinstance(fbid, int)
         # Pls don't kill me
         try:
             return self.get_thread_from_cache(fbid)
