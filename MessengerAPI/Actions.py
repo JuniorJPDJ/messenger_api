@@ -67,6 +67,8 @@ class Action(object):
                 return SetMuteAction.from_pull_delta(msg, data['delta'])
             else:
                 return cls.unknown(msg, data)
+        elif data['type'] == 'buddylist_overlay':
+            return BuddyListOverlayAction.from_pull(msg, data)
         else:
             return cls.unknown(msg, data)
 
@@ -255,3 +257,16 @@ class SetMuteAction(Action):
         mute = int(data['expireTime'])
         mute = False if mute == 0 else True if mute == -1 else datetime.fromtimestamp(mute)
         return cls(msg, thread, mute)
+
+
+class BuddyListOverlayAction(Action):
+    def __init__(self, msg, person, last_active, p, ol, s, vc, a):
+        Action.__init__(self, msg)
+        self.last_active, self.p, self.ol, self.s, self.vc, self.a = last_active, p, ol, a, vc, a
+
+    @classmethod
+    def from_pull(cls, msg, data):
+        r = []
+        for o in data['overlay'].items():
+            r.append(cls(msg, msg.get_person(int(o[0])), datetime.fromtimestamp(o[1]['la']), o[1]['p'] if 'p' in o[1] else None, o[1]['ol'] if 'ol' in o[1] else None, o[1]['s'] if 's' in o[1] else None, o[1]['vc'] if 'vc' in o[1] else None, o[1]['a'] if 'a' in o[1] else None))
+        return tuple(r)

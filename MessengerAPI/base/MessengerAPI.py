@@ -106,6 +106,11 @@ class MessengerAPI(object):
         self.rev = data.split('revision":')[1].split(',')[0]
         self.uid = data.split('USER_ID":"')[1].split('"')[0]
 
+        self.locale = data.split('"locale":"')[1].split('"')[0]
+        self.lang = data.split('"language":"')[1].split('"')[0]
+
+        self.last_active = json.loads(data.split('"lastActiveTimes":')[1].split('},')[0]+'}')
+
         o = u''
         t = 0
         for c in data.split('"mercuryPayload":')[1]:
@@ -118,6 +123,8 @@ class MessengerAPI(object):
                     break
             o += c
         self.mercury_payload = json.loads(o)
+
+        self.initdata = data
 
         self.partition, self.user_channel, self.pull_host, self.seq = (None, None, None, None)
         self.sticky_token, self.sticky_pool, self.tr = (None, None, None)
@@ -312,6 +319,13 @@ class MessengerAPI(object):
         req = self.send_req('/ajax/mercury/composer_query.php', 0, {'value': query, 'limit': limit, 'existing_ids': ','.join(existing_threads)})
         check_for_messenger_error(req)
         return json.loads(req.text[9:])['payload']
+
+    def set_mute_thread(self, thread, mutetime):
+        data = {'thread_fbid': thread, 'mute_settings': mutetime,
+                'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
+        req = self.send_req('/ajax/mercury/change_mute_thread.php', 1, data)
+        check_for_messenger_error(req)
+        return req
 
     def pull(self):
         if self.partition is None or self.user_channel is None or self.pull_host is None or self.seq is None:

@@ -24,23 +24,25 @@ if len(sys.argv) > 0:
         pw = sys.argv[2]
         logging.info('Using password provided through parameter')
         if len(sys.argv) > 2:
-            thread = sys.argv[3]
+            thread = int(sys.argv[3])
             logging.info('Using {} as test thread id'.format(thread))
             if len(sys.argv) > 3:
-                person = sys.argv[4]
+                person = int(sys.argv[4])
                 logging.info('Using {} as test person id'.format(person))
             else:
-                person = input('Test person id: ')
+                person = int(input('Test person id: '))
         else:
-            thread = input('Test thread id: ')
-            person = input('Test person id: ')
+            thread = int(input('Test thread id: '))
+            person = int(input('Test person id: '))
     else:
         pw = getpass.getpass()
-        thread = input('Test thread id: ')
+        thread = int(input('Test thread id: '))
+        person = int(input('Test person id: '))
 else:
     email = input('E-mail: ')
     pw = getpass.getpass()
-    thread = input('Test thread id: ')
+    thread = int(input('Test thread id: '))
+    person = int(input('Test person id: '))
 
 logging.info('Logging in')
 msg = Messenger(email, pw)

@@ -21,12 +21,14 @@ class Messenger(object):
         self.ordered_thread_list = []
         self.me = self.get_person(int(self.msgapi.uid))
         self.parse_threadlist(self.msgapi.mercury_payload)
+        for p in self.msgapi.last_active.items():
+            self.get_person(int(p[0])).last_active = datetime.fromtimestamp(p[1])
 
     def parse_threadlist(self, threadlist):
         if 'participants' in threadlist:
             for p in threadlist['participants']:
                 if p['fbid'] not in self._people:
-                    self._people[p['fbid']] = Person.from_dict(self, p)
+                    self._people[int(p['fbid'])] = Person.from_dict(self, p)
         new_threads = {}
         if 'threads' in threadlist:
             for t in threadlist['threads']:
@@ -98,14 +100,14 @@ class Messenger(object):
                 if 'threads' in data and len(data['threads']):
                     thread = Thread.from_dict(self, data['threads'][0])
                 else:
-                    thread = PrivateThread(self, fbid, True, False, 'inbox', None, {}, None, 0, 0, datetime.now(), datetime.now())
+                    thread = PrivateThread(self, fbid, True, False, 'inbox', None, {}, None, 0, 0, datetime.now(), datetime.now(), False)
                 self._threads[fbid] = thread
                 return thread
 
     def load_more_threads(self, amount=10):
         return self.parse_threadlist(self.msgapi.get_thread_list(limit=amount, offset=self._threadlist_offset))
 
-    def load_people_from_friends(self):
+    def load_people_from_buddylist(self):
         # TODO: get_all_users_info
         raise NotImplementedError
 

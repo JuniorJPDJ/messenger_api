@@ -13,7 +13,7 @@ class MessengerPullParser(object):
         self.msg = msg
         self._action_handlers = set()
 
-    def register_actions(self, handler):
+    def register_actions_handler(self, handler):
         assert callable(handler)
         self._action_handlers.add(handler)
 

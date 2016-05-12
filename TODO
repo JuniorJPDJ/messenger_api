@@ -3,9 +3,6 @@ TODO: setuptools
 
 
 TODO: Forwarding attachments
-TODO: Set mute options of thread
-DONE: Load mute status from thread
-TODO: Action for buddylist_overlay (la = last seen)
 
 Objects:
 DONE: Messenger
