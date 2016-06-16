@@ -19,6 +19,9 @@ class Thread(object):
         self.last_delivery = None
         self.last_read = {}
 
+    def __repr__(self):
+        return u"<MessengerAPI.Thread.{}: {} ({})>".format(self.__class__.__name__, self.get_name(), self.fbid)
+
     @classmethod
     def from_dict(cls, messenger, data):
         if data['other_user_fbid'] is None:
