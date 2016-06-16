@@ -82,7 +82,7 @@ class LogMessageAction(Action):
     def unknown(cls, msg, data):
         f = cls(msg, datetime.fromtimestamp(data['timestamp'] / 1000.0), msg.get_thread(int(data['thread_fbid'])), msg.get_person(int(data['author'][5:])), data['message_id'], data['log_message_body'])
         f.data = data
-        return data
+        return f
 
     @classmethod
     def from_pull(cls, msg, data):

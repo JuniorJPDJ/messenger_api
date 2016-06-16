@@ -18,6 +18,9 @@ class Person(object):
         self.fbid, self.name, self.short_name, self.image, self.imgsmal, self.gender = fbid, name, short_name, image, imgsmall, gender
         self.last_active = None
 
+    def __repr__(self):
+        return u"<MessengerAPI.Person: {} ({})>".format(self.name, self.fbid)
+
     @classmethod
     def from_dict(cls, messenger, data):
         if 'short_name' in data:
