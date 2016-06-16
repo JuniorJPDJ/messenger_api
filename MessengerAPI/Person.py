@@ -13,13 +13,13 @@ class Gender(Enum):
 
 class Person(object):
     def __init__(self, messenger, fbid, name, short_name, image, imgsmall, gender):
-        assert isinstance(fbid, int)
+        assert isnumber(fbid)
         self.messenger = messenger
         self.fbid, self.name, self.short_name, self.image, self.imgsmal, self.gender = fbid, name, short_name, image, imgsmall, gender
         self.last_active = None
 
     def __repr__(self):
-        return u"<MessengerAPI.Person: {} ({})>".format(self.name, self.fbid)
+        return u"<MessengerAPI.Person.Person: \"{}\" ({})>".format(self.name, self.fbid)
 
     @classmethod
     def from_dict(cls, messenger, data):
@@ -32,3 +32,7 @@ class Person(object):
 
     def get_thread(self):
         return self.messenger.get_thread(self.fbid)
+
+
+def isnumber(num):
+    return isinstance(num, (int, __builtins__.get('long')))

@@ -59,7 +59,7 @@ class Messenger(object):
             raise UnknownPersonException
 
     def get_person(self, fbid):
-        assert isinstance(fbid, int)
+        assert isnumber(fbid)
         try:
             return self.get_person_from_cache(fbid)
         except UnknownPersonException:
@@ -77,7 +77,7 @@ class Messenger(object):
             raise UnknownThreadException
 
     def get_thread(self, fbid):
-        assert isinstance(fbid, int)
+        assert isnumber(fbid)
         # Pls don't kill me
         try:
             return self.get_thread_from_cache(fbid)
@@ -128,3 +128,7 @@ class Messenger(object):
 
     def logout(self):
         self.msgapi.logout()
+
+
+def isnumber(num):
+    return isinstance(num, (int, __builtins__.get('long')))

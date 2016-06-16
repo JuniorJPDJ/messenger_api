@@ -9,7 +9,7 @@ class Thread(object):
     group = False
 
     def __init__(self, messenger, fbid, can_reply, archived, folder, custom_color, custom_nicknames, custom_emoji, message_count, unread_count, last_msg_time, last_read_time, mute):
-        assert isinstance(fbid, int)
+        assert isnumber(fbid)
         self.messenger = messenger
         self.fbid, self.can_reply, self.archived, self.folder = fbid, can_reply, archived, folder
         self.custom_color, self.custom_nicknames, self.custom_emoji = custom_color, custom_nicknames, custom_emoji
@@ -20,7 +20,7 @@ class Thread(object):
         self.last_read = {}
 
     def __repr__(self):
-        return u"<MessengerAPI.Thread.{}: {} ({})>".format(self.__class__.__name__, self.get_name(), self.fbid)
+        return u"<MessengerAPI.Thread.{}: \"{}\" ({})>".format(self.__class__.__name__, self.get_name(), self.fbid)
 
     @classmethod
     def from_dict(cls, messenger, data):
@@ -77,13 +77,13 @@ class Thread(object):
         self.custom_color = color
 
     def set_mute(self, mute):
-        assert isinstance(mute, (bool, datetime.datetime, datetime.timedelta, int))
+        assert isinstance(mute, (bool, datetime.datetime, datetime.timedelta, int, __builtins__.get('long')))
         if isinstance(mute, bool):
             if mute:
                 mutetime = -1
             else:
                 mutetime = 0
-        elif isinstance(mute, int):
+        elif isnumber(mute):
             mutetime = mute
         elif isinstance(mute, datetime.datetime):
             mute = datetime.datetime.now() - mute
@@ -151,3 +151,7 @@ class GroupThread(Thread):
             t = ', '.join([self.get_participant_name(p) for p in self.participants[:5]])
             t += ' and {} more...'.format(len(self.participants) - 5) if len(self.participants) > 5 else ''
             return t
+
+
+def isnumber(num):
+    return isinstance(num, (int, __builtins__.get('long')))
