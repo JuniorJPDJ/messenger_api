@@ -106,8 +106,8 @@ class MessengerAPI(object):
         self.rev = data.split('revision":')[1].split(',')[0]
         self.uid = data.split('USER_ID":"')[1].split('"')[0]
 
-        self.locale = data.split('"locale":"')[1].split('"')[0]
-        self.lang = data.split('"language":"')[1].split('"')[0]
+        self.locale = data.split('locale:"')[1].split('"')[0]
+        self.lang = data.split('language:"')[1].split('"')[0]
 
         self.last_active = json.loads(data.split('"lastActiveTimes":')[1].split('},')[0]+'}')
 
