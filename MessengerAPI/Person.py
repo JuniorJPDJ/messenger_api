@@ -8,6 +8,10 @@ class Gender(Enum):
     fanpage = 0
     female = 1
     male = 2
+    gender_1 = 3
+    gender_2 = 4
+    gender_3 = 5
+    gender_4 = 6
     wtf = 7
 
 
