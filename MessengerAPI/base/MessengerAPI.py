@@ -148,41 +148,46 @@ class MessengerAPI(object):
             attachment = {}
         thread_id = unicode(thread_id)
         msg = unicode(msg)
-        data = {'message_batch[0][action_type]': 'ma-type:user-generated-message',
-                'message_batch[0][author]': 'fbid:' + self.uid,
-                'message_batch[0][source]': 'source:messenger:web',
-                'message_batch[0][body]': msg,
-                'message_batch[0][has_attachment]': 'false',
-                'message_batch[0][html_body]': 'false',
-                'message_batch[0][timestamp]': int(time.time() * 1000),
+        _id = random.randint(0, 999999999999999999)
+        data = {'action_type': 'ma-type:user-generated-message',
+                'author': 'fbid:' + self.uid,
+                'source': 'source:messenger:web',
+                'body': msg,
+                'has_attachment': 'false',
+                'html_body': 'false',
+                'timestamp': int(time.time() * 1000),
+                'offline_threading_id': _id,
+                'message_id': _id,
                 'client': 'mercury', 'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
         if group:
-            userdata = {'message_batch[0][thread_fbid]': thread_id}
+            userdata = {'thread_fbid': thread_id}
         else:
-            userdata = {'message_batch[0][specific_to_list][0]': 'fbid:' + thread_id,
-                        'message_batch[0][specific_to_list][1]': 'fbid:' + self.uid,
-                        'message_batch[0][client_thread_id]': 'user:' + thread_id}
+            userdata = {'specific_to_list[0]': 'fbid:' + thread_id,
+                        'specific_to_list[1]': 'fbid:' + self.uid,
+                        'other_user_fbid': thread_id}
         data.update(userdata)
         data.update(attachment)
 
-        req = self.send_req('/ajax/mercury/send_messages.php', 1, data)
+        req = self.send_req('/messaging/send/', 1, data)
 
         check_for_messenger_error(req)
 
         return json.loads(req.text[9:])['payload']
 
     def send_log_message(self, thread_id, log_message_type, additional_data):
-        data = {'message_batch[0][action_type]': 'ma-type:log-message',
-                'message_batch[0][author]': 'fbid:' + self.uid,
-                'message_batch[0][source]': 'source:messenger:web',
-                'message_batch[0][log_message_type]': log_message_type,
-                'message_batch[0][thread_fbid]': thread_id,
-                'message_batch[0][offline_threading_id]': random.randint(0, 999999999999999999),
-                'message_batch[0][timestamp]': int(time.time() * 1000),
+        _id = random.randint(0, 999999999999999999)
+        data = {'action_type': 'ma-type:log-message',
+                'author': 'fbid:' + self.uid,
+                'source': 'source:messenger:web',
+                'log_message_type': log_message_type,
+                'thread_fbid': thread_id,
+                'offline_threading_id': _id,
+                'message_id': _id,
+                'timestamp': int(time.time() * 1000),
                 'client': 'messenger', 'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
         data.update(additional_data)
 
-        req = self.send_req('/ajax/mercury/send_messages.php', 1, data)
+        req = self.send_req('/messaging/send/', 1, data)
 
         check_for_messenger_error(req)
 
@@ -211,7 +216,7 @@ class MessengerAPI(object):
         return self.send_messaging_request('save_thread_emoji', 'thread_settings', thread_id, data)
 
     def add_to_thread(self, thread_id, users):
-        return self.send_log_message(thread_id, 'log:subscribe', dict([['message_batch[0][log_message_data][added_participants][{}]'.format(users.index(x)), 'fbid:{}'.format(x)] for x in users]))
+        return self.send_log_message(thread_id, 'log:subscribe', dict([['log_message_data[added_participants][{}]'.format(users.index(x)), 'fbid:{}'.format(x)] for x in users]))
 
     def kick_from_thread(self, thread_id, user):
         data = {'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
@@ -226,7 +231,7 @@ class MessengerAPI(object):
         return self.kick_from_thread(thread_id, self.uid)
 
     def rename_thread(self, thread_id, name):
-        return self.send_log_message(thread_id, 'log:thread-name', {'message_batch[0][log_message_data][name]': name})
+        return self.send_log_message(thread_id, 'log:thread-name', {'log_message_data[name]': name})
 
     def send_reconnect(self, reason=6):
         resp = self.send_req('/ajax/presence/reconnect.php', 0, {'reason': reason, 'fb_dtsg': self.dtsg_token})

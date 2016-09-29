@@ -8,11 +8,11 @@ class Gender(Enum):
     fanpage = 0
     female = 1
     male = 2
-    gender_1 = 3
-    gender_2 = 4
-    gender_3 = 5
-    gender_4 = 6
-    wtf = 7
+    gender_3 = 3
+    gender_4 = 4
+    gender_5 = 5
+    gender_6 = 6
+    gender_7 = 7
 
 
 class Person(object):

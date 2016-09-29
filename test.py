@@ -59,8 +59,8 @@ thread.rename(newname)
 logging.info('Setting it back')
 thread.rename(name)
 
-logging.info('Sending random message')
-thread.send_message(randomword(64))
+# logging.info('Sending random message')
+# thread.send_message(randomword(64))
 
 logging.info('Making messages read')
 thread.make_read()
@@ -72,22 +72,32 @@ time.sleep(10)
 logging.info('Setting type status to false')
 thread.send_typing(False)
 
-logging.info('Loading 30 messages from history')
-for m in thread.load_older_messages():
-    if isinstance(m, Message):
-        logging.info(m.body)
-    else:
-        logging.info(type(m))
-
-logging.info('Loading participants')
-for p in thread.participants:
-    logging.info('{}: {}'.format(p.name, thread.get_participant_name(p)))
-
 logging.info('Getting person')
 person = msg.get_person(person)
 
 logging.info('Adding person to thread')
 thread.add_people([person])
 
+name = randomword(8)
+logging.info('Setting person\'s name to {}'.format(name))
+thread.set_participant_name(person, name)
+
 logging.info('Kicking person from thread')
 thread.kick_person(person)
+
+logging.info('Thread color: {}'.format(thread.custom_color))
+color = hex(random.randint(0, 0xffffff))[2:]
+color = '0' * (6 - len(color)) + color
+logging.info('Setting color to'.format(color))
+thread.set_custom_color(color)
+
+logging.info('Loading participants')
+for p in thread.participants:
+    logging.info('{}: {}'.format(p.name, thread.get_participant_name(p)))
+
+logging.info('Loading 30 messages from history')
+for m in thread.load_older_messages():
+    if isinstance(m, Message):
+        logging.info(m.body)
+    else:
+        logging.info(type(m))

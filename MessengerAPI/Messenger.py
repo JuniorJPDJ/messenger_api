@@ -49,7 +49,7 @@ class Messenger(object):
             for t in threadlist['roger'].items():
                 th = self.get_thread(int(t[0]))
                 for p in t[1]:
-                    th.last_read[self.get_person(int(p))] = datetime.fromtimestamp(t[1][p] / 1000.0)
+                    th.last_read[self.get_person(int(p))] = datetime.fromtimestamp(t[1][p]['action'] / 1000.0)
         return new_threads
 
     def get_person_from_cache(self, fbid):

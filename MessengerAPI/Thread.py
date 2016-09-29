@@ -126,7 +126,8 @@ class GroupThread(Thread):
     def from_dict(cls, messenger, data):
         mute = int(data['mute_settings']['{}@facebook.com'.format(messenger.me.fbid)]) if data['mute_settings'] else 0
         mute = False if mute == 0 else True if mute == -1 else datetime.datetime.fromtimestamp(mute)
-        return cls(messenger, int(data['thread_fbid']), data['can_reply'], data['is_archived'], data['folder'], data['custom_color'], dict([(messenger.get_person(int(fbid[0])), fbid[1]) for fbid in data['custom_nickname'].items()]) if data['custom_nickname'] is not None else dict(), data['custom_like_icon'], data['message_count'], data['unread_count'], datetime.datetime.fromtimestamp(data['last_message_timestamp'] / 1000.0), datetime.datetime.fromtimestamp(data['last_read_timestamp'] / 1000.0), mute, [messenger.get_person(int(fbid[5:])) for fbid in data['participants']], [int(fbid['id'][5:]) for fbid in data['former_participants']], data['name'], data['image_src'])
+
+        return cls(messenger, int(data['thread_fbid']), data['can_reply'], data['is_archived'], data['folder'], data['custom_color'], dict([(messenger.get_person(int(fbid[0])), fbid[1]) for fbid in data['custom_nickname'].items()]) if data['custom_nickname'] is not None else dict(), data['custom_like_icon'], data['message_count'], data['unread_count'], None if data['last_message_timestamp'] == -1 else datetime.datetime.fromtimestamp(data['last_message_timestamp'] / 1000.0), None if data['last_read_timestamp'] == -1 else datetime.datetime.fromtimestamp(data['last_read_timestamp'] / 1000.0), mute, [messenger.get_person(int(fbid[5:])) for fbid in data['participants']], [int(fbid['id'][5:]) for fbid in data['former_participants']], data['name'], data['image_src'])
 
     def leave(self):
         self.messenger.msgapi.leave_thread(self.fbid)

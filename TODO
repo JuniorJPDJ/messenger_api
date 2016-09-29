@@ -13,6 +13,22 @@ DONE: PrivateThread
 DONE: Message
 DONE: Attachment
 DONE: Actions
+TODO: Phone call action (missed etc.)
+TODO: Location Attachment
+TODO: Default puller actions:
+    TODO: on_message
+    TODO: on_delivery
+    TODO: on_read
+    TODO: on_leave/on_kick
+    TODO: on_add
+    TODO: on_nickname_change
+    TODO: on_rename
+    TODO: on_image_change
+    TODO: on_emoji_change
+    TODO: on_color_change
+    TODO: on_make_read
+    TODO: on_mute_change
+
 TODO: Emoji list
 TODO: StickerPack
 TODO: Sticker
