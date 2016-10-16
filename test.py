@@ -88,7 +88,7 @@ thread.kick_person(person)
 logging.info('Thread color: {}'.format(thread.custom_color))
 color = hex(random.randint(0, 0xffffff))[2:]
 color = '0' * (6 - len(color)) + color
-logging.info('Setting color to'.format(color))
+logging.info('Setting color to {}'.format(color))
 thread.set_custom_color(color)
 
 logging.info('Loading participants')

@@ -2,6 +2,7 @@ import json
 import mimetypes
 import os
 from .base.MessengerAPI import str_base, MessengerAPI
+from .Messenger import Messenger
 
 __author__ = 'JuniorJPDJ'
 
@@ -10,9 +11,12 @@ __author__ = 'JuniorJPDJ'
 
 class MessengerCreateAttachment(object):
     def __init__(self, messenger):
-        if not isinstance(messenger, MessengerAPI):
-            raise TypeError("'messenger' has to be 'MessengerAPI.Messenger', not '{}'".format(type(messenger).__name__))
-        self.messenger = messenger
+        assert isinstance(messenger, (MessengerAPI, Messenger))
+
+        if isinstance(messenger, Messenger):
+            self.messenger = messenger.msgapi
+        else:
+            self.messenger = messenger
 
     def attach_url(self, link):
         resp = self.messenger.send_req('/message_share_attachment/fromURI/', 1,
@@ -38,7 +42,7 @@ class MessengerCreateAttachment(object):
 
             return out
 
-        return makedata(json.loads(resp.text[9:])['payload']['share_data'], 'message_batch[0][shareable_attachment]')
+        return makedata(json.loads(resp.text[9:])['payload']['share_data'], 'shareable_attachment')
 
     def attach_file(self, filename):
         self.messenger.uploadid += 1
@@ -51,21 +55,21 @@ class MessengerCreateAttachment(object):
 
         data = json.loads(resp.text[9:])['payload']['metadata'][0]
 
-        attachment = {'message_batch[0][has_attachment]': 'true',
-                      'message_batch[0][preview_attachments][0][upload_id]': 'upload_{}'.format(self.messenger.uploadid),
-                      'message_batch[0][preview_attachments][0][attach_type]': 'photo',
-                      'message_batch[0][preview_attachments][0][preview_uploading]': 'true',
-                      'message_batch[0][upload_id]': 'upload_{}'.format(self.messenger.uploadid)}
+        attachment = {'has_attachment': 'true',
+                      'preview_attachments[0][upload_id]': 'upload_{}'.format(self.messenger.uploadid),
+                      'preview_attachments[0][attach_type]': 'photo',
+                      'preview_attachments[0][preview_uploading]': 'true',
+                      'upload_id': 'upload_{}'.format(self.messenger.uploadid)}
 
         if 'image_id' in data:
-            attachment.update({'message_batch[0][image_ids][0]': data['image_id']})
+            attachment.update({'image_ids[0]': data['image_id']})
         elif 'file_id' in data:
-            attachment.update({'message_batch[0][file_ids][0]': data['file_id']})
+            attachment.update({'file_ids[0]': data['file_id']})
         #elif
 
         return attachment
 
     @staticmethod
     def attach_sticker(stickerid):
-        return {'message_batch[0][body]': '',
-                'message_batch[0][sticker_id]': stickerid}
+        return {'body': '',
+                'sticker_id': stickerid}
