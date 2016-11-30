@@ -8,7 +8,8 @@ __author__ = 'JuniorJPDJ'
 class Thread(object):
     group = False
 
-    def __init__(self, messenger, fbid, can_reply, archived, folder, custom_color, custom_nicknames, custom_emoji, message_count, unread_count, last_msg_time, last_read_time, mute):
+    def __init__(self, messenger, fbid, can_reply, archived, folder, custom_color, custom_nicknames, custom_emoji,
+                 message_count, unread_count, last_msg_time, last_read_time, mute):
         assert isnumber(fbid)
         self.messenger = messenger
         self.fbid, self.can_reply, self.archived, self.folder = fbid, can_reply, archived, folder
@@ -104,9 +105,17 @@ class Thread(object):
 class PrivateThread(Thread):
     @classmethod
     def from_dict(cls, messenger, data):
-        mute = int(data['mute_settings']['{}@facebook.com'.format(messenger.me.fbid)]) if data['mute_settings'] else 0
+        mute = int(data['mute_until']) if data['mute_until'] else 0
         mute = False if mute == 0 else True if mute == -1 else datetime.datetime.fromtimestamp(mute)
-        return cls(messenger, int(data['thread_fbid']), data['can_reply'], data['is_archived'], data['folder'], data['custom_color'], dict([(messenger.get_person(int(fbid[0])), fbid[1]) for fbid in data['custom_nickname'].items()]) if data['custom_nickname'] is not None else dict(), data['custom_like_icon'], data['message_count'], data['unread_count'], datetime.datetime.fromtimestamp(data['last_message_timestamp'] / 1000.0), datetime.datetime.fromtimestamp(data['last_read_timestamp'] / 1000.0), mute)
+
+        custom_nicknames = dict([(messenger.get_person(int(fbid[0])), fbid[1]) for fbid in data['custom_nickname'].items()]) if data['custom_nickname'] is not None else dict()
+
+        last_msg_time = None if data['last_message_timestamp'] == -1 else datetime.datetime.fromtimestamp(data['last_message_timestamp'] / 1000.0)
+        last_read_time = None if data['last_read_timestamp'] == -1 else datetime.datetime.fromtimestamp(data['last_read_timestamp'] / 1000.0)
+
+        return cls(messenger, int(data['thread_fbid']), data['can_reply'], data['is_archived'], data['folder'],
+                   data['custom_color'], custom_nicknames, data['custom_like_icon'], data['message_count'],
+                   data['unread_count'], last_msg_time, last_read_time, mute)
 
     def get_name(self):
         return self.get_participant_name(self.messenger.get_person(self.fbid))
@@ -118,16 +127,28 @@ class PrivateThread(Thread):
 class GroupThread(Thread):
     group = True
 
-    def __init__(self, messenger, fbid, can_reply, archived, folder, custom_color, custom_nicknames, custom_emoji, message_count, unread_count, last_msg_time, last_read_time, mute, participants, former_participants, name, image):
-        Thread.__init__(self, messenger, fbid, can_reply, archived, folder, custom_color, custom_nicknames, custom_emoji, message_count, unread_count, last_msg_time, last_read_time, mute)
-        self.participants, self.former_participants, self.name, self.image = participants, former_participants, name, image
+    def __init__(self, messenger, fbid, can_reply, archived, folder, custom_color, custom_nicknames, custom_emoji,
+                 message_count, unread_count, last_msg_time, last_read_time, mute, participants, name, image):
+
+        Thread.__init__(self, messenger, fbid, can_reply, archived, folder, custom_color, custom_nicknames, custom_emoji,
+                        message_count, unread_count, last_msg_time, last_read_time, mute)
+        self.participants, self.name, self.image = participants,  name, image
 
     @classmethod
     def from_dict(cls, messenger, data):
-        mute = int(data['mute_settings']['{}@facebook.com'.format(messenger.me.fbid)]) if data['mute_settings'] else 0
+        mute = int(data['mute_until']) if data['mute_until'] else 0
         mute = False if mute == 0 else True if mute == -1 else datetime.datetime.fromtimestamp(mute)
 
-        return cls(messenger, int(data['thread_fbid']), data['can_reply'], data['is_archived'], data['folder'], data['custom_color'], dict([(messenger.get_person(int(fbid[0])), fbid[1]) for fbid in data['custom_nickname'].items()]) if data['custom_nickname'] is not None else dict(), data['custom_like_icon'], data['message_count'], data['unread_count'], None if data['last_message_timestamp'] == -1 else datetime.datetime.fromtimestamp(data['last_message_timestamp'] / 1000.0), None if data['last_read_timestamp'] == -1 else datetime.datetime.fromtimestamp(data['last_read_timestamp'] / 1000.0), mute, [messenger.get_person(int(fbid[5:])) for fbid in data['participants']], [int(fbid['id'][5:]) for fbid in data['former_participants']], data['name'], data['image_src'])
+        participants = [messenger.get_person(int(fbid[5:])) for fbid in data['participants']]
+
+        custom_nicknames = dict([(messenger.get_person(int(fbid[0])), fbid[1]) for fbid in data['custom_nickname'].items()]) if data['custom_nickname'] is not None else dict()
+
+        last_msg_time = None if data['last_message_timestamp'] == -1 else datetime.datetime.fromtimestamp(data['last_message_timestamp'] / 1000.0)
+        last_read_time = None if data['last_read_timestamp'] == -1 else datetime.datetime.fromtimestamp(data['last_read_timestamp'] / 1000.0)
+
+        return cls(messenger, int(data['thread_fbid']), data['can_reply'], data['is_archived'], data['folder'],
+                   data['custom_color'], custom_nicknames, data['custom_like_icon'], data['message_count'],
+                   data['unread_count'], last_msg_time, last_read_time, mute, participants, data['name'], data['image_src'])
 
     def leave(self):
         self.messenger.msgapi.leave_thread(self.fbid)
