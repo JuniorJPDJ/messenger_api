@@ -12,34 +12,19 @@ __author__ = 'JuniorJPDJ'
 
 
 class Attachment(object):
+    __attach_type_handlers = {}
+
+    @classmethod
+    def register_attach_type(cls, attach_type, handler):
+        cls.__attach_type_handlers[attach_type] = handler
+
     def __init__(self, url):
         self.url = url
 
     @classmethod
     def from_dict(cls, data):
-        if data['attach_type'] == 'file':
-            if data['metadata'] and data['metadata']['type'] == 'fb_voice_message':
-                return VoiceAttachment(unicode(data['url']), int(data['metadata']['duration']))
-            else:
-                return FileAttachment(unicode(data['url']), unicode(data['name']))
-        elif data['attach_type'] == 'photo':
-            d = data['metadata']['dimensions'].split(',')
-            return PhotoAttachment(unicode(data['hires_url']), int(data['metadata']['fbid']), int(d[0]), int(d[1]))
-        elif data['attach_type'] == 'animated_image':
-            d = data['metadata']['dimensions'].split(',')
-            return AnimatedImageAttachment(unicode(data['url']), int(data['metadata']['fbid']), int(d[0]), int(d[1]))
-        elif data['attach_type'] == 'video':
-            return VideoAttachment(unicode(data['url']), int(data['metadata']['fbid']), int(data['metadata']['dimensions']['height']), int(data['metadata']['dimensions']['width']), int(data['metadata']['duration']))
-        elif data['attach_type'] == 'sticker':
-            return StickerAttachment(unicode(data['url']), int(data['metadata']['stickerID']), int(data['metadata']['packID']))
-        elif data['attach_type'] == 'share':
-            if not data['share']['uri']:
-                url = None
-            elif 'l.facebook' in data['share']['uri']:
-                url = unicode(urlparse.parse_qs(data['share']['uri'].split('?')[1])['u'][0])
-            else:
-                url = data['share']['uri']
-            return ShareAttachment(url, unicode(data['share']['title']))
+        if data['attach_type'] in cls.__attach_type_handlers:
+            return cls.__attach_type_handlers[data['attach_type']](data)
         else:
             return cls(data['url'])
 
@@ -55,6 +40,15 @@ class FileAttachment(Attachment):
     def __repr__(self):
         return u'FileAttachment(url={}, name={})'.format(self.url, self.name)
 
+    @classmethod
+    def from_dict(cls, data):
+        if data['metadata'] and data['metadata']['type'] == 'fb_voice_message':
+            return VoiceAttachment(unicode(data['url']), int(data['metadata']['duration']))
+        else:
+            return cls(unicode(data['url']), unicode(data['name']))
+
+Attachment.register_attach_type('file', FileAttachment.from_dict)
+
 
 class VoiceAttachment(Attachment):
     def __init__(self, url, duration):
@@ -68,28 +62,38 @@ class VoiceAttachment(Attachment):
         return u'VoiceAttachment(url={}, duration={})'.format(self.url, self.duration)
 
 
+# TODO: get real photo url
 class PhotoAttachment(Attachment):
-    def __init__(self, url, fbid, width, height):
-        Attachment.__init__(self, url)
-        self.fbid, self.height, self.width = fbid, height, width
+    def __init__(self, fbid, size, preview_url, preview_size, large_preview_url, large_preview_size):
+        Attachment.__init__(self, large_preview_url)
+        self.fbid, self.size = fbid, size
+        self.preview_url, self.preview_size = preview_url, preview_size
+        self.large_preview_url, self.large_preview_size = large_preview_url, large_preview_size
 
     def __str__(self):
-        return u'<PhotoAttachment ({}x{})>'.format(self.width, self.height)
+        return u'<{}.{} ({}x{})>'.format(__name__, self.__class__.__name__, self.size[0], self.size[1])
 
     def __repr__(self):
-        return u'PhotoAttachment(url={}, fbid={}, width={}, height={})'.format(self.url, self.fbid, self.width, self.height)
+        return (u'PhotoAttachment(fbid={}, size={}, preview_url={}, '
+                u'preview_size={}, large_preview_url={}, large_preview_size={})'
+                .format(self.fbid, self.size, self.preview_url, self.preview_size, self.large_preview_url,
+                        self.large_preview_url))
+
+    @classmethod
+    def from_dict(cls, data):
+        print(data)
+        size = tuple([int(i) for i in data['metadata']['dimensions'].split(',')])
+        preview_size = (data['preview_width'], data['preview_height'])
+        large_preview_size = (data['large_preview_width'], data['large_preview_height'])
+        return cls(int(data['metadata']['fbid']), size, data['preview_url'], preview_size, data['large_preview_url'], large_preview_size)
+
+Attachment.register_attach_type('photo', PhotoAttachment.from_dict)
 
 
-class AnimatedImageAttachment(Attachment):
-    def __init__(self, url, fbid, width, height):
-        Attachment.__init__(self, url)
-        self.fbid, self.height, self.width = fbid, height, width
+class AnimatedImageAttachment(PhotoAttachment):
+    pass
 
-    def __str__(self):
-        return u'<AnimatedImageAttachment ({}x{})>'.format(self.width, self.height)
-
-    def __repr__(self):
-        return u'AnimatedImageAttachment(url={}, fbid={}, width={}, height={})'.format(self.url, self.fbid, self.width, self.height)
+Attachment.register_attach_type('animated_image', AnimatedImageAttachment.from_dict)
 
 
 class VideoAttachment(Attachment):
@@ -103,6 +107,13 @@ class VideoAttachment(Attachment):
     def __repr__(self):
         return u'VideoAttachment(url={}, fbid={}, width={}, height={}, duration={})'.format(self.url, self.fbid, self.width, self.height, self.duration)
 
+    @classmethod
+    def from_dict(cls, data):
+        return cls(unicode(data['url']), int(data['metadata']['fbid']), int(data['metadata']['dimensions']['height']),
+                   int(data['metadata']['dimensions']['width']), int(data['metadata']['duration']))
+
+Attachment.register_attach_type('video', VideoAttachment.from_dict)
+
 
 class StickerAttachment(Attachment):
     def __init__(self, url, stickerid, packid):
@@ -115,6 +126,12 @@ class StickerAttachment(Attachment):
     def __repr__(self):
         return u'StickerAttachment(url={}, stickerid={}, packid={})'.format(self.url, self.stickerid, self.packid)
 
+    @classmethod
+    def from_dict(cls, data):
+        return cls(unicode(data['url']), int(data['metadata']['stickerID']), int(data['metadata']['packID']))
+
+Attachment.register_attach_type('sticker', StickerAttachment.from_dict)
+
 
 class ShareAttachment(Attachment):
     def __init__(self, url, name):
@@ -126,3 +143,15 @@ class ShareAttachment(Attachment):
 
     def __repr__(self):
         return u'ShareAttachment(url={}, name={})'.format(self.url, self.name)
+
+    @classmethod
+    def from_dict(cls, data):
+        if not data['share']['uri']:
+            url = None
+        elif 'facebook.com/l.php' in data['share']['uri']:
+            url = unicode(urlparse.parse_qs(data['share']['uri'].split('?')[1])['u'][0])
+        else:
+            url = data['share']['uri']
+        return cls(url, unicode(data['share']['title']))
+
+Attachment.register_attach_type('share', ShareAttachment.from_dict)

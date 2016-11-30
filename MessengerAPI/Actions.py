@@ -10,7 +10,7 @@ __author__ = 'JuniorJPDJ'
 class Action(object):
     def __init__(self, msg):
         self.msg = msg
-        
+
     @classmethod
     def unknown(cls, msg, data):
         f = cls(msg)
@@ -262,7 +262,7 @@ class SetMuteAction(Action):
 class BuddyListOverlayAction(Action):
     def __init__(self, msg, person, last_active, p, ol, s, vc, a):
         Action.__init__(self, msg)
-        self.last_active, self.p, self.ol, self.s, self.vc, self.a = last_active, p, ol, a, vc, a
+        self.person, self.last_active, self.p, self.ol, self.s, self.vc, self.a = person, last_active, p, ol, a, vc, a
 
     @classmethod
     def from_pull(cls, msg, data):
