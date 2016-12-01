@@ -51,7 +51,7 @@ class TypingAction(Action):
 
     @classmethod
     def from_pull(cls, msg, data):
-        return cls(msg, msg.get_thread(data['thread_fbid'] if 'thread_fbid' in data else data['from']),
+        return cls(msg, data, msg.get_thread(data['thread_fbid'] if 'thread_fbid' in data else data['from']),
                    msg.get_person(data['from']), bool(data['st']))
 
 Action.register_type('typ', TypingAction.from_pull)
