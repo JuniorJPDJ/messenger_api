@@ -1,6 +1,8 @@
 import datetime
+
 from .Message import Message
 from .Actions import MercuryAction
+from .utils.universal_type_checking import is_integer
 
 __author__ = 'JuniorJPDJ'
 
@@ -10,7 +12,7 @@ class Thread(object):
 
     def __init__(self, messenger, fbid, can_reply, archived, folder, custom_color, custom_nicknames, custom_emoji,
                  message_count, unread_count, last_msg_time, last_read_time, mute):
-        assert isnumber(fbid)
+        assert is_integer(fbid)
         self.messenger = messenger
         self.fbid, self.can_reply, self.archived, self.folder = fbid, can_reply, archived, folder
         self.custom_color, self.custom_nicknames, self.custom_emoji = custom_color, custom_nicknames, custom_emoji
@@ -78,13 +80,13 @@ class Thread(object):
         self.custom_color = color
 
     def set_mute(self, mute):
-        assert isinstance(mute, (bool, datetime.datetime, datetime.timedelta, int, __builtins__.get('long')))
+        assert isinstance(mute, (bool, datetime.datetime, datetime.timedelta)) or is_integer(mute)
         if isinstance(mute, bool):
             if mute:
                 mutetime = -1
             else:
                 mutetime = 0
-        elif isnumber(mute):
+        elif is_integer(mute):
             mutetime = mute
         elif isinstance(mute, datetime.datetime):
             mute = datetime.datetime.now() - mute
@@ -173,7 +175,3 @@ class GroupThread(Thread):
             t = ', '.join([self.get_participant_name(p) for p in self.participants[:5]])
             t += ' and {} more...'.format(len(self.participants) - 5) if len(self.participants) > 5 else ''
             return t
-
-
-def isnumber(num):
-    return isinstance(num, (int, __builtins__.get('long')))

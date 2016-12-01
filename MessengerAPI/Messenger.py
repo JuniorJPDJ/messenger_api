@@ -1,11 +1,13 @@
 from datetime import datetime
+
 from .base.MessengerAPI import MessengerAPI
 from .base.Exceptions import UserNotFoundException, UnknownThreadException, UnknownPersonException, MessengerException
 from .MessengerPullParser import MessengerPullParser
 from .Person import Person
 from .Thread import Thread, PrivateThread
+from .utils.universal_type_checking import is_integer
 
-__author__  = 'JuniorJPDJ'
+__author__ = 'JuniorJPDJ'
 __version__ = 0.1
 
 # TODO: Make use of PullParser
@@ -59,7 +61,7 @@ class Messenger(object):
             raise UnknownPersonException
 
     def get_person(self, fbid):
-        assert isnumber(fbid)
+        assert is_integer(fbid)
         try:
             return self.get_person_from_cache(fbid)
         except UnknownPersonException:
@@ -77,7 +79,7 @@ class Messenger(object):
             raise UnknownThreadException
 
     def get_thread(self, fbid):
-        assert isnumber(fbid)
+        assert is_integer(fbid)
         # Pls don't kill me
         try:
             return self.get_thread_from_cache(fbid)
@@ -129,7 +131,3 @@ class Messenger(object):
 
     def logout(self):
         self.msgapi.logout()
-
-
-def isnumber(num):
-    return isinstance(num, (int, __builtins__.get('long')))

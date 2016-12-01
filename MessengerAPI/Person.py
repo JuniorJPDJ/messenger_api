@@ -1,5 +1,7 @@
 from enum import Enum
+
 from .base.Exceptions import UnknownDictFormatException
+from .utils.universal_type_checking import is_integer
 
 __author__ = 'JuniorJPDJ'
 
@@ -17,7 +19,7 @@ class Gender(Enum):
 
 class Person(object):
     def __init__(self, messenger, fbid, name, short_name, image, imgsmall, gender):
-        assert isnumber(fbid)
+        assert is_integer(fbid)
         self.messenger = messenger
         self.fbid, self.name, self.short_name = fbid, name, short_name
         self.image, self.imgsmal, self.gender = image, imgsmall, gender
@@ -39,7 +41,3 @@ class Person(object):
 
     def get_thread(self):
         return self.messenger.get_thread(self.fbid)
-
-
-def isnumber(num):
-    return isinstance(num, (int, __builtins__.get('long')))

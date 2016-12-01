@@ -9,7 +9,7 @@ from .Exceptions import *
 if sys.version_info >= (3, 0):
     unicode = str  # python3 support
 
-__author__  = 'JuniorJPDJ'
+__author__ = 'JuniorJPDJ'
 __version__ = 0.2
 
 # Main features:
@@ -81,8 +81,8 @@ class MessengerAPI(object):
             pass
 
         self.sess.get('https://www.facebook.com/login/messenger_dot_com_iframe/',
-                      params={'redirect_uri': 'https://www.messenger.com/login/fb_iframe_target/?initial_request_id={}'.format
-                      (initreqid), 'identifier': identifier, 'initial_request_id': initreqid})
+                      params={'redirect_uri': 'https://www.messenger.com/login/fb_iframe_target/?initial_request_id={}'
+                              .format(initreqid), 'identifier': identifier, 'initial_request_id': initreqid})
 
         res = self.sess.post('https://www.messenger.com/login/password/',
                              {'lsd': lsd_token, 'initial_request_id': initreqid, 'timezone': timezone, 'lgnrnd': lgnrnd,
@@ -193,11 +193,11 @@ class MessengerAPI(object):
 
         return req
 
-    def send_messaging_request(self, type, source, thread_id, additional_data):
+    def send_messaging_request(self, _type, source, thread_id, additional_data):
         data = {'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp, 'thread_or_other_fbid': thread_id}
         data.update(additional_data)
 
-        req = self.send_req('/messaging/{type}/?source={source}'.format(type=type, source=source), 1, data)
+        req = self.send_req('/messaging/{type}/?source={source}'.format(type=_type, source=source), 1, data)
 
         check_for_messenger_error(req)
 
@@ -216,7 +216,9 @@ class MessengerAPI(object):
         return self.send_messaging_request('save_thread_emoji', 'thread_settings', thread_id, data)
 
     def add_to_thread(self, thread_id, users):
-        return self.send_log_message(thread_id, 'log:subscribe', dict([['log_message_data[added_participants][{}]'.format(users.index(x)), 'fbid:{}'.format(x)] for x in users]))
+        return self.send_log_message(thread_id, 'log:subscribe',
+                                     dict([['log_message_data[added_participants][{}]'.format(users.index(x)),
+                                            'fbid:{}'.format(x)] for x in users]))
 
     def kick_from_thread(self, thread_id, user):
         data = {'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
@@ -269,13 +271,13 @@ class MessengerAPI(object):
         check_for_messenger_error(req)
         return req
 
-    def get_thread_list(self, folder='inbox', limit=10, offset=0, filter=None):
+    def get_thread_list(self, folder='inbox', limit=10, offset=0, _filter=None):
         assert folder in ('inbox', 'pending', 'other')
-        assert filter in (None, 'unread')
+        assert _filter in (None, 'unread')
         data = {'{}[offset]'.format(folder): offset, '{}[limit]'.format(folder): limit,
                 'fb_dtsg': self.dtsg_token, 'ttstamp': self.ttstamp}
-        if filter is not None:
-            data.update({'{}[filter]'.format(folder): filter})
+        if _filter is not None:
+            data.update({'{}[filter]'.format(folder): _filter})
         req = self.send_req('/ajax/mercury/threadlist_info.php', 1, data)
         check_for_messenger_error(req)
         return json.loads(req.text[9:])['payload']

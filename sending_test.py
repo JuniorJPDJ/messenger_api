@@ -1,11 +1,11 @@
-from MessengerAPI.Messenger import Messenger
-from MessengerAPI.Message import Message
+import argparse
 import time
-import getpass
 import logging
-import sys
 import random
 import string
+
+from MessengerAPI.Messenger import Messenger
+from MessengerAPI.Message import Message
 
 
 __author__ = 'JuniorJPDJ'
@@ -17,39 +17,22 @@ logging.basicConfig(level=logging.DEBUG)
 def randomword(length):
     return ''.join(random.choice(string.ascii_letters) for i in range(length))
 
-if len(sys.argv) > 0:
-    email = sys.argv[1]
-    logging.info('Using {} as email/login'.format(email))
-    if len(sys.argv) > 1:
-        pw = sys.argv[2]
-        logging.info('Using password provided through parameter')
-        if len(sys.argv) > 2:
-            thread = int(sys.argv[3])
-            logging.info('Using {} as test thread id'.format(thread))
-            if len(sys.argv) > 3:
-                person = int(sys.argv[4])
-                logging.info('Using {} as test person id'.format(person))
-            else:
-                person = int(input('Test person id: '))
-        else:
-            thread = int(input('Test thread id: '))
-            person = int(input('Test person id: '))
-    else:
-        pw = getpass.getpass()
-        thread = int(input('Test thread id: '))
-        person = int(input('Test person id: '))
-else:
-    email = input('E-mail: ')
-    pw = getpass.getpass()
-    thread = int(input('Test thread id: '))
-    person = int(input('Test person id: '))
+
+p = argparse.ArgumentParser()
+p.add_argument('email', help="E-Mail/Phone number/Other facebook login")
+p.add_argument('password', help="Facebook password")
+p.add_argument('thread', type=int, help="Messenger/Facebook thread id to test on")
+p.add_argument('person', type=int, help="Messenger/Facebook person id to test on")
+
+args = p.parse_args()
+
 
 logging.info('Logging in')
-msg = Messenger(email, pw)
+msg = Messenger(args.email, args.password)
 logging.info('Logged in')
 
-logging.info('Getting thread {}'.format(thread))
-thread = msg.get_thread(thread)
+logging.info('Getting thread {}'.format(args.thread))
+thread = msg.get_thread(args.thread)
 logging.info('Thread name: {}'.format(thread.get_name()))
 
 name = thread.get_name()
@@ -73,7 +56,7 @@ logging.info('Setting type status to false')
 thread.send_typing(False)
 
 logging.info('Getting person')
-person = msg.get_person(person)
+person = msg.get_person(args.person)
 
 logging.info('Adding person to thread')
 thread.add_people([person])

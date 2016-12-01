@@ -3,6 +3,7 @@ from .Attachments import Attachment
 from datetime import datetime
 
 __author__ = 'JuniorJPDJ'
+# TODO: Phone call action (missed etc.)
 
 
 class Action(object):
@@ -92,7 +93,8 @@ class LogMessageAction(MercuryAction):
 
     @classmethod
     def unknown(cls, msg, data):
-        return cls(msg, data, datetime.fromtimestamp(data['timestamp'] / 1000.0), msg.get_thread(int(data['thread_fbid'])),
+        thread = msg.get_thread(int(data['other_user_fbid' if 'other_user_fbid' in data else 'thread_fbid']))
+        return cls(msg, data, datetime.fromtimestamp(data['timestamp'] / 1000.0), thread,
                    msg.get_person(int(data['author'][5:])), data['message_id'], data['log_message_body'])
 
     @classmethod
@@ -247,7 +249,9 @@ class DeltaAction(Action):
             return cls(msg, data['delta'])
 
 Action.register_type('delta', DeltaAction.from_pull)
+Action.register_type('deltaflow', lambda msg, data: None)
 DeltaAction.register_delta_class('NewMessage', Message.from_pull)
+DeltaAction.register_delta_class('NoOp', lambda msg, data: None)
 
 
 class DeliveryAction(DeltaAction):
@@ -319,3 +323,16 @@ class BuddyListOverlayAction(Action):
         return tuple(r)
 
 Action.register_type('buddylist_overlay', BuddyListOverlayAction.from_pull)
+
+
+class InboxAction(Action):
+    def __init__(self, msg, data, recent_unread, unread, unseen, seen_time):
+        Action.__init__(self, msg, data)
+        self.recent_unread, self.unread, self.unseen, self.seen_time = recent_unread, unread, unseen, seen_time
+
+    @classmethod
+    def from_pull(cls, msg, data):
+        seen_time = datetime.fromtimestamp(int(data['seen_timestamp']) / 1000.0)
+        return cls(msg, data, data['recent_unread'], data['unread'], data['unseen'], seen_time)
+
+Action.register_type('inbox', InboxAction.from_pull)

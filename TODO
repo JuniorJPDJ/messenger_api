@@ -13,8 +13,6 @@ DONE: PrivateThread
 DONE: Message
 DONE: Attachment
 DONE: Actions
-TODO: Phone call action (missed etc.)
-TODO: Location Attachment
 TODO: Default puller actions:
     TODO: on_message
     TODO: on_delivery
