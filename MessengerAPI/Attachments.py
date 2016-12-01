@@ -81,11 +81,11 @@ class PhotoAttachment(Attachment):
 
     @classmethod
     def from_dict(cls, data):
-        print(data)
         size = tuple([int(i) for i in data['metadata']['dimensions'].split(',')])
         preview_size = (data['preview_width'], data['preview_height'])
         large_preview_size = (data['large_preview_width'], data['large_preview_height'])
-        return cls(int(data['metadata']['fbid']), size, data['preview_url'], preview_size, data['large_preview_url'], large_preview_size)
+        return cls(int(data['metadata']['fbid']), size, data['preview_url'], preview_size, data['large_preview_url'],
+                   large_preview_size)
 
 Attachment.register_attach_type('photo', PhotoAttachment.from_dict)
 
@@ -105,7 +105,9 @@ class VideoAttachment(Attachment):
         return u'<VideoAttachment ({}x{}) with {} seconds duration>'.format(self.width, self.height, self.duration)
 
     def __repr__(self):
-        return u'VideoAttachment(url={}, fbid={}, width={}, height={}, duration={})'.format(self.url, self.fbid, self.width, self.height, self.duration)
+        return u'VideoAttachment(url={}, fbid={}, width={}, height={}, duration={})'.format(self.url, self.fbid,
+                                                                                            self.width, self.height,
+                                                                                            self.duration)
 
     @classmethod
     def from_dict(cls, data):

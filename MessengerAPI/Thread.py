@@ -1,6 +1,6 @@
 import datetime
 from .Message import Message
-from .Actions import LogMessageAction
+from .Actions import MercuryAction
 
 __author__ = 'JuniorJPDJ'
 
@@ -46,8 +46,8 @@ class Thread(object):
 
     def load_older_messages(self, amount=30):
         data = self.messenger.msgapi.get_thread_messages(self.fbid, amount, len(self.messages), self.group)
-        msgs = [LogMessageAction.from_thread_info(self, m) for m in (data['actions'] if 'actions' in data else [])]
-        self.messages = msgs + self.messages
+        msgs = MercuryAction.from_pull(self.messenger, data)
+        self.messages = list(msgs) + self.messages
         return msgs
 
     def get_name(self):

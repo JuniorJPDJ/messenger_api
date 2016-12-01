@@ -20,8 +20,8 @@ class MessengerCreateAttachment(object):
 
     def attach_url(self, link):
         resp = self.messenger.send_req('/message_share_attachment/fromURI/', 1,
-                            {'fb_dtsg': self.messenger.dtsg_token, 'ttstamp': self.messenger.ttstamp, 'disallow_delayed': True,
-                             'image_width': 920, 'image_height': 920, 'uri': link})
+                                       {'fb_dtsg': self.messenger.dtsg_token, 'ttstamp': self.messenger.ttstamp,
+                                        'disallow_delayed': True, 'image_width': 920, 'image_height': 920, 'uri': link})
 
         def makedata(data, prefix):
             out = {}
@@ -48,10 +48,12 @@ class MessengerCreateAttachment(object):
         self.messenger.uploadid += 1
         self.messenger.reqid += 1
         resp = self.messenger.sess.post('https://upload.messenger.com/ajax/mercury/upload.php',
-                              params={'__user': self.messenger.uid, '__a': 1, '__req': str_base(self.messenger.reqid), '__rev': self.messenger.rev,
-                                      'fb_dtsg': self.messenger.dtsg_token, 'ttstamp': self.messenger.ttstamp}, data={'images_only': 'false'},
+                              params={'__user': self.messenger.uid, '__a': 1, '__req': str_base(self.messenger.reqid),
+                                      '__rev': self.messenger.rev, 'fb_dtsg': self.messenger.dtsg_token,
+                                      'ttstamp': self.messenger.ttstamp}, data={'images_only': 'false'},
                               files={'upload_{}'.format(self.messenger.uploadid):
-                                        (os.path.basename(filename), open(filename, 'rb'), mimetypes.guess_type(filename)[0] or 'application/octet-stream')})
+                                     (os.path.basename(filename), open(filename, 'rb'),
+                                      mimetypes.guess_type(filename)[0] or 'application/octet-stream')})
 
         data = json.loads(resp.text[9:])['payload']['metadata'][0]
 
@@ -65,7 +67,6 @@ class MessengerCreateAttachment(object):
             attachment.update({'image_ids[0]': data['image_id']})
         elif 'file_id' in data:
             attachment.update({'file_ids[0]': data['file_id']})
-        #elif
 
         return attachment
 

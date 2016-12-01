@@ -100,7 +100,8 @@ class Messenger(object):
                 if 'threads' in data and len(data['threads']):
                     thread = Thread.from_dict(self, data['threads'][0])
                 else:
-                    thread = PrivateThread(self, fbid, True, False, 'inbox', None, {}, None, 0, 0, datetime.now(), datetime.now(), False)
+                    thread = PrivateThread(self, fbid, True, False, 'inbox', None, {}, None, 0, 0, datetime.now(),
+                                           datetime.now(), False)
                 self._threads[fbid] = thread
                 return thread
 
