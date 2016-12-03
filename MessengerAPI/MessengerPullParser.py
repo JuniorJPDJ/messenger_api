@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 import time
 
 from .base.Exceptions import NeedReconnect

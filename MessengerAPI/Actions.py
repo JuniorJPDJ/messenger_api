@@ -1,6 +1,9 @@
+from __future__ import unicode_literals
+
+from datetime import datetime
+
 from .Message import Message
 from .Attachments import Attachment
-from datetime import datetime
 
 __author__ = 'JuniorJPDJ'
 # TODO: Phone call action (missed etc.)

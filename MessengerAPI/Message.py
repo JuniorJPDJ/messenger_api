@@ -1,4 +1,7 @@
+from __future__ import unicode_literals
+
 from datetime import datetime
+
 from .Attachments import Attachment
 
 __author__ = 'JuniorJPDJ'
