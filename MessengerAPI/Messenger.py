@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from datetime import datetime
+from collections import defaultdict
 
 from .base.MessengerAPI import MessengerAPI
 from .base.Exceptions import UserNotFoundException, UnknownThreadException, UnknownPersonException, MessengerException
@@ -12,8 +13,6 @@ from .utils.universal_type_checking import is_integer
 __author__ = 'JuniorJPDJ'
 __version__ = 0.1
 
-# TODO: Make use of PullParser
-
 
 class Messenger(object):
     def __init__(self, login, pw, useragent='default'):
@@ -23,12 +22,14 @@ class Messenger(object):
         self._threads = {}
         self._threadlist_offset = 0
         self.ordered_thread_list = []
+        self.__action_handlers = defaultdict(lambda: [])
+        self._pparser.register_actions_handler(self._handle_action)
         self.me = self.get_person(int(self.msgapi.uid))
-        self.parse_threadlist(self.msgapi.mercury_payload)
+        self._parse_threadlist(self.msgapi.mercury_payload)
         for p in self.msgapi.last_active.items():
             self.get_person(int(p[0])).last_active = datetime.fromtimestamp(p[1])
 
-    def parse_threadlist(self, threadlist):
+    def _parse_threadlist(self, threadlist):
         if 'participants' in threadlist:
             for p in threadlist['participants']:
                 if p['fbid'] not in self._people:
@@ -55,6 +56,10 @@ class Messenger(object):
                 for p in t[1]:
                     th.last_read[self.get_person(int(p))] = datetime.fromtimestamp(t[1][p]['action'] / 1000.0)
         return new_threads
+
+    def _handle_action(self, action):
+        for handler in self.__action_handlers[action.__class__]:
+            handler(action)
 
     def get_person_from_cache(self, fbid):
         if fbid in self._people:
@@ -110,7 +115,7 @@ class Messenger(object):
                 return thread
 
     def load_more_threads(self, amount=10):
-        return self.parse_threadlist(self.msgapi.get_thread_list(limit=amount, offset=self._threadlist_offset))
+        return self._parse_threadlist(self.msgapi.get_thread_list(limit=amount, offset=self._threadlist_offset))
 
     def load_people_from_buddylist(self):
         # TODO: get_all_users_info
@@ -130,6 +135,12 @@ class Messenger(object):
                 threads[int(e['uid'])] = self.get_person(int(e['uid'])).get_thread()
         self._threads.update(threads)
         return threads
+
+    def register_action_handler(self, action, handler):
+        self.__action_handlers[action].append(handler)
+
+    def pull(self):
+        self._pparser.make_pull()
 
     def logout(self):
         self.msgapi.logout()
