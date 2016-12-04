@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import datetime
 
+from .Attachments import SendableAttachment
 from .Message import Message
 from .Actions import MercuryAction
 from .utils.universal_type_checking import is_integer
@@ -35,7 +36,11 @@ class Thread(object):
             return PrivateThread.from_dict(messenger, data)
 
     def send_message(self, body='', attachment=None):
-        if attachment is None:
+        if isinstance(attachment, SendableAttachment):
+            attachment = attachment.to_dict()
+        elif isinstance(attachment, dict):
+            pass
+        else:
             attachment = {}
         msg = Message.from_sending_dict(self.messenger.msgapi.send_msg(self.fbid, body, attachment, self.group), self, body)
         self.messages.append(msg)

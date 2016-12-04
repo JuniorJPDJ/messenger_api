@@ -1,6 +1,10 @@
 from __future__ import unicode_literals
 
+import mimetypes
+import json
 import sys
+
+from .base.MessengerAPI import str_base
 
 if sys.version_info >= (3, 0):
     unicode = str  # python3 support
@@ -11,6 +15,41 @@ else:
 __author__ = 'JuniorJPDJ'
 
 # TODO: make attachment objects easy to send with message
+
+
+class AttachmentUploader(object):
+    def __init__(self, msg):
+        """
+        :type msg: Messenger
+        """
+        self.msg = msg
+
+    def _upload(self, filename, filelike, mimetype=None):
+        api = self.msg.msgapi
+        api.uploadid += 1
+        api.reqid += 1
+
+        mimetype = mimetypes.guess_type(filename)[0] or 'application/octet-stream' if mimetype is None else mimetype
+
+        params = {'__user': api.uid, '__a': 1, '__req': str_base(api.reqid), '__rev': api.rev,
+                  'fb_dtsg': api.dtsg_token, 'ttstamp': api.ttstamp}
+        data = {'images_only': 'false'}
+        files = {'upload_{}'.format(api.uploadid): (filename, filelike, mimetype)}
+
+        resp = api.sess.post('https://upload.messenger.com/ajax/mercury/upload.php', params=params, data=data, files=files)
+
+        return json.loads(resp.text[9:])['payload']['metadata'][0]
+
+    def upload(self, filename, filelike, mimetype=None):
+        payload = self._upload(filename, filelike, mimetype)
+
+        _type = None
+        for i in payload:
+            if i.endswith('_id'):
+                _type = i
+                break
+
+        return UploadedAttachment(payload, payload['src'], _type, payload[_type])
 
 
 class Attachment(object):
@@ -29,6 +68,55 @@ class Attachment(object):
             return cls.__attach_type_handlers[data['attach_type']](data)
         else:
             return cls(data, data['url'])
+
+
+class SendableAttachment(Attachment):
+    """
+    This class is interface for attachment, that can be sent with message (reuse or upload)
+    """
+    def to_dict(self):
+        raise NotImplementedError('Override me!')
+
+
+class MultiSendableAttachment(SendableAttachment):
+    """
+    This class makes interface for attachment, what can be sent more than one in one message
+    """
+    typename = 'override_me'
+
+    def __init__(self, data, url, fbid):
+        SendableAttachment.__init__(self, data, url)
+        self.fbid = fbid
+
+    def to_dict(self, num=0):
+        return {'has_attachment': True, '{}_ids[{}]'.format(self.typename, num): self.fbid}
+
+
+class MultiSendableAttachments(SendableAttachment):
+    """
+    This class is helping to send more than one MultiSendableAttachment with one message
+    """
+    def __init__(self, attachments_iterable):
+        """
+        :type attachments_iterable: iterable of MultiSendableAttachment
+        """
+        SendableAttachment.__init__(self, attachments_iterable, None)
+        self._attachments = []
+        for a in attachments_iterable:
+            if isinstance(a, MultiSendableAttachment):
+                self._attachments.append(a)
+
+    def to_dict(self):
+        r = {}
+        for i in range(len(self._attachments)):
+            r.update(self._attachments[i].to_dict(i))
+        return r
+
+
+class UploadedAttachment(MultiSendableAttachment):
+    def __init__(self, data, url, typename, fbid):
+        MultiSendableAttachment.__init__(self, data, url, fbid)
+        self.typename = typename[:-3]
 
 
 class FileAttachment(Attachment):
@@ -65,11 +153,12 @@ class VoiceAttachment(Attachment):
 
 
 # TODO: get real photo url
-class PhotoAttachment(Attachment):
+class PhotoAttachment(MultiSendableAttachment):
+    typename = "image"
+
     def __init__(self, data, fbid, size, preview_url, preview_size, large_preview_url, large_preview_size):
-        Attachment.__init__(self, data, large_preview_url)
-        self.fbid, self.size = fbid, size
-        self.preview_url, self.preview_size = preview_url, preview_size
+        MultiSendableAttachment.__init__(self, data, large_preview_url, fbid)
+        self.size, self.preview_url, self.preview_size = size, preview_url, preview_size
         self.large_preview_url, self.large_preview_size = large_preview_url, large_preview_size
 
     def __str__(self):
@@ -98,10 +187,12 @@ class AnimatedImageAttachment(PhotoAttachment):
 Attachment.register_attach_type('animated_image', AnimatedImageAttachment.from_dict)
 
 
-class VideoAttachment(Attachment):
+class VideoAttachment(MultiSendableAttachment):
+    typename = "video"
+
     def __init__(self, data, url, fbid, width, height, duration):
-        Attachment.__init__(self, data, url)
-        self.fbid, self.height, self.width, self.duration = fbid, height, width, duration
+        MultiSendableAttachment.__init__(self, data, url, fbid)
+        self.height, self.width, self.duration = height, width, duration
 
     def __str__(self):
         return u'<VideoAttachment ({}x{}) with {} seconds duration>'.format(self.width, self.height, self.duration)
@@ -119,9 +210,9 @@ class VideoAttachment(Attachment):
 Attachment.register_attach_type('video', VideoAttachment.from_dict)
 
 
-class StickerAttachment(Attachment):
+class StickerAttachment(SendableAttachment):
     def __init__(self, data, url, stickerid, packid):
-        Attachment.__init__(self, data, url)
+        SendableAttachment.__init__(self, data, url)
         self.stickerid, self.packid = stickerid, packid
 
     def __str__(self):
@@ -134,9 +225,17 @@ class StickerAttachment(Attachment):
     def from_dict(cls, data):
         return cls(data, unicode(data['url']), int(data['metadata']['stickerID']), int(data['metadata']['packID']))
 
+    @classmethod
+    def create(cls, stickerid, packid=None):
+        return cls(None, None, stickerid, packid)
+
+    def to_dict(self):
+        return {'has_attachment': True, 'sticker_id': self.stickerid}
+
 Attachment.register_attach_type('sticker', StickerAttachment.from_dict)
 
 
+# TODO: Creating and resending Shares
 class ShareAttachment(Attachment):
     def __init__(self, data, url, name):
         Attachment.__init__(self, data, url)

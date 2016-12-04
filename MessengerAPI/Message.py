@@ -28,13 +28,13 @@ class Message(object):
     def from_mercury_action(cls, msg, data):
         return cls(msg.get_thread(int(data['thread_fbid'])), msg.get_person(int(data['author'][5:])), data['message_id'],
                    datetime.fromtimestamp(data['timestamp'] / 1000.0), data['body'],
-                   [Attachment.from_dict(a) for a in data['attachments']])
+                   tuple([Attachment.from_dict(a) for a in data['attachments']]))
 
     @classmethod
     def from_sending_dict(cls, data, thread, body):
         data = data['actions'][0]
         return cls(thread, thread.messenger.me, data['message_id'], datetime.fromtimestamp(data['timestamp'] / 1000.0),
-                   body, [Attachment.from_dict(a) for a in data['attachments']])
+                   body, tuple([Attachment.from_dict(a) for a in data['attachments']]))
 
     def send_deliviery_receipt(self):
         if not self.delivered and not self.author == self.thread.messenger.me:
