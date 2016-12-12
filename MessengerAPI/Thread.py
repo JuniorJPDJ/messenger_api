@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 import datetime
 
-from .Attachments import SendableAttachment
+from .Attachments import SendableAttachment, PhotoAttachment, UploadedAttachment
 from .Message import Message
 from .Actions import MercuryAction
 from .utils.universal_type_checking import is_integer
@@ -161,24 +161,29 @@ class GroupThread(Thread):
 
     def leave(self):
         self.messenger.msgapi.leave_thread(self.fbid)
+        self.participants.remove(self.messenger.me)
 
     def add_people(self, people):
         self.messenger.msgapi.add_to_thread(self.fbid, [person.fbid for person in people])
+        self.participants.append(people)
 
     def kick_person(self, person):
         self.messenger.msgapi.kick_from_thread(self.fbid, person.fbid)
+        self.participants.remove(person)
 
     def rename(self, name):
         self.messenger.msgapi.rename_thread(self.fbid, name)
+        self.name = name
 
-    def change_image(self, image):
-        # TODO: implement changing image
-        raise NotImplementedError
+    def change_image(self, image_attachment):
+        assert isinstance(image_attachment, PhotoAttachment) or (isinstance(image_attachment, UploadedAttachment) and image_attachment.typename == "image")
+        self.messenger.msgapi.change_thread_image(self.fbid, image_attachment.fbid)
+        self.image = image_attachment.url
 
-    def get_name(self):
+    def get_name(self, generate_if_none=True):
         if self.name:
             return self.name
-        else:
+        elif generate_if_none:
             t = ', '.join([self.get_participant_name(p) for p in self.participants[:5]])
             t += ' and {} more...'.format(len(self.participants) - 5) if len(self.participants) > 5 else ''
             return t

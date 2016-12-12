@@ -1,4 +1,5 @@
 TODO: Docs              *I gonna die, You know?*
+TODO: make project care about types
 TODO: setuptools
 
 
@@ -14,18 +15,20 @@ DONE: Message
 DONE: Attachment
 DONE: Actions
 TODO: Default puller actions:
-    TODO: on_message
+    DONE: on_message
     TODO: on_delivery
     TODO: on_read
-    TODO: on_leave/on_kick
-    TODO: on_add
-    TODO: on_nickname_change
-    TODO: on_rename
+    DONE: on_leave/on_kick
+    DONE: on_add
+    DONE: on_nickname_change
+    DONE: on_rename
     TODO: on_image_change
-    TODO: on_emoji_change
-    TODO: on_color_change
+    DONE: on_emoji_change
+    DONE: on_color_change
     TODO: on_make_read
-    TODO: on_mute_change
+    DONE: on_mute_change
+
+TODO: Creating GroupThreads
 
 TODO: Emoji list
 TODO: StickerPack

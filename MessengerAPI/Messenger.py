@@ -3,11 +3,13 @@ from __future__ import unicode_literals
 from datetime import datetime
 from collections import defaultdict
 
-from .base.MessengerAPI import MessengerAPI
 from .base.Exceptions import UserNotFoundException, UnknownThreadException, UnknownPersonException, MessengerException
 from .MessengerPullParser import MessengerPullParser
-from .Person import Person
+from .DefaultActionHandlers import register_handlers
+from .base.MessengerAPI import MessengerAPI
 from .Thread import Thread, PrivateThread
+from .Attachments import AttachmentUploader
+from .Person import Person
 from .utils.universal_type_checking import is_integer
 
 __author__ = 'JuniorJPDJ'
@@ -17,15 +19,17 @@ __version__ = 0.1
 class Messenger(object):
     def __init__(self, login, pw, useragent='default'):
         self.msgapi = MessengerAPI(login, pw, useragent)
+        self._uploader = AttachmentUploader(self)
         self._pparser = MessengerPullParser(self)
         self._people = {}
         self._threads = {}
         self._threadlist_offset = 0
         self.ordered_thread_list = []
         self.__action_handlers = defaultdict(lambda: [])
-        self._pparser.register_actions_handler(self._handle_action)
         self.me = self.get_person(int(self.msgapi.uid))
+        self._pparser.register_actions_handler(self._handle_action)
         self._parse_threadlist(self.msgapi.mercury_payload)
+        register_handlers(self)
         for p in self.msgapi.last_active.items():
             self.get_person(int(p[0])).last_active = datetime.fromtimestamp(p[1])
 
@@ -138,6 +142,9 @@ class Messenger(object):
 
     def register_action_handler(self, action, handler):
         self.__action_handlers[action].append(handler)
+
+    def upload_attachmnet(self, filename, filelike, mimetype=None):
+        return self._uploader.upload(filename, filelike, mimetype)
 
     def pull(self):
         self._pparser.make_pull()

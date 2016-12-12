@@ -14,8 +14,6 @@ else:
 
 __author__ = 'JuniorJPDJ'
 
-# TODO: make attachment objects easy to send with message
-
 
 class AttachmentUploader(object):
     def __init__(self, msg):

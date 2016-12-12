@@ -34,7 +34,7 @@ __version__ = 0.2
 # DONE: search
 # DONE: change thread color theme
 # DONE: change custom name of pariticipant of thread
-# TODO: change thread image
+# DONE: change thread image
 
 # Additional features:
 # NOPE: unread_threads                                                      There is no need to use it. I think filtering at thread list is doing this well
@@ -217,6 +217,9 @@ class MessengerAPI(object):
     def change_custom_emoji(self, thread_id, emoji):
         data = {'emoji_choice': emoji}
         return self.send_messaging_request('save_thread_emoji', 'thread_settings', thread_id, data)
+
+    def change_thread_image(self, thread_id, image_id):
+        return self.send_log_message(thread_id, 'log:thread-image', {'log_message_data[image][image_id]': image_id})
 
     def add_to_thread(self, thread_id, users):
         return self.send_log_message(thread_id, 'log:subscribe',
