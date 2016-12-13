@@ -5,7 +5,8 @@ import datetime
 from .Attachments import SendableAttachment, PhotoAttachment, UploadedAttachment
 from .Message import Message
 from .Actions import MercuryAction
-from .utils.universal_type_checking import is_integer
+from .Person import Person
+from .utils.universal_type_checking import is_integer, is_string
 
 __author__ = 'JuniorJPDJ'
 
@@ -16,6 +17,17 @@ class Thread(object):
     def __init__(self, messenger, fbid, can_reply, archived, folder, custom_color, custom_nicknames, custom_emoji,
                  message_count, unread_count, last_msg_time, last_read_time, mute):
         assert is_integer(fbid)
+        assert isinstance(can_reply, bool)
+        assert isinstance(archived, bool)
+        assert is_string(folder)
+        assert is_string(custom_color)
+        assert isinstance(custom_nicknames, dict)
+        assert is_string(custom_emoji)
+        assert is_integer(message_count)
+        assert is_integer(unread_count)
+        assert isinstance(last_msg_time, datetime)
+        assert isinstance(last_read_time, datetime)
+        assert isinstance(mute, (datetime, bool))
         self.messenger = messenger
         self.fbid, self.can_reply, self.archived, self.folder = fbid, can_reply, archived, folder
         self.custom_color, self.custom_nicknames, self.custom_emoji = custom_color, custom_nicknames, custom_emoji
@@ -36,6 +48,7 @@ class Thread(object):
             return PrivateThread.from_dict(messenger, data)
 
     def send_message(self, body='', attachment=None):
+        assert is_string(body)
         if isinstance(attachment, SendableAttachment):
             attachment = attachment.to_dict()
         elif isinstance(attachment, dict):
@@ -51,9 +64,11 @@ class Thread(object):
         self.unread_count = 0
 
     def send_typing(self, typing=True):
+        assert isinstance(typing, bool)
         self.messenger.msgapi.send_typing(self.fbid, typing, self.group)
 
     def load_older_messages(self, amount=30):
+        assert is_integer(amount)
         data = self.messenger.msgapi.get_thread_messages(self.fbid, amount, len(self.messages), self.group)
         msgs = MercuryAction.from_pull(self.messenger, data)
         self.messages = list(msgs) + self.messages
@@ -63,6 +78,7 @@ class Thread(object):
         pass
 
     def get_participant_name(self, person):
+        assert isinstance(person, Person)
         if person in self.custom_nicknames:
             return self.custom_nicknames[person]
         else:
@@ -72,6 +88,8 @@ class Thread(object):
         pass
 
     def set_participant_name(self, person, name):
+        assert isinstance(person, Person)
+        assert is_string(name)
         self.messenger.msgapi.change_custom_nickname(self.fbid, person.fbid, name)
         if name:
             self.custom_nicknames[person] = name
@@ -79,10 +97,12 @@ class Thread(object):
             del self.custom_nicknames[person]
 
     def set_custom_emoji(self, emoji):
+        assert is_string(emoji)
         self.messenger.msgapi.change_custom_emoji(self.fbid, emoji)
         self.custom_emoji = emoji
 
     def set_custom_color(self, color):
+        assert is_string(color)
         self.messenger.msgapi.change_custom_color(self.fbid, color)
         self.custom_color = color
 
@@ -130,6 +150,7 @@ class PrivateThread(Thread):
         return self.get_participant_name(self.messenger.get_person(self.fbid))
 
     def rename(self, name):
+        assert is_string(name)
         self.set_participant_name(self.messenger.get_person(self.fbid), name)
 
 
@@ -141,6 +162,9 @@ class GroupThread(Thread):
 
         Thread.__init__(self, messenger, fbid, can_reply, archived, folder, custom_color, custom_nicknames, custom_emoji,
                         message_count, unread_count, last_msg_time, last_read_time, mute)
+        assert isinstance(participants, list)
+        assert is_string(name)
+        assert is_string(image)
         self.participants, self.name, self.image = participants,  name, image
 
     @classmethod
@@ -164,14 +188,17 @@ class GroupThread(Thread):
         self.participants.remove(self.messenger.me)
 
     def add_people(self, people):
+        assert isinstance(people, list)
         self.messenger.msgapi.add_to_thread(self.fbid, [person.fbid for person in people])
-        self.participants.append(people)
+        self.participants.extend(people)
 
     def kick_person(self, person):
+        assert isinstance(person, Person)
         self.messenger.msgapi.kick_from_thread(self.fbid, person.fbid)
         self.participants.remove(person)
 
     def rename(self, name):
+        assert is_string(name)
         self.messenger.msgapi.rename_thread(self.fbid, name)
         self.name = name
 
@@ -181,6 +208,7 @@ class GroupThread(Thread):
         self.image = image_attachment.url
 
     def get_name(self, generate_if_none=True):
+        assert isinstance(generate_if_none, bool)
         if self.name:
             return self.name
         elif generate_if_none:

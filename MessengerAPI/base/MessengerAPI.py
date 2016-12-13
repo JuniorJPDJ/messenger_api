@@ -145,13 +145,14 @@ class MessengerAPI(object):
 
         return resp
 
-    def send_msg(self, thread_id, msg='', attachment=None, group=False):
+    def send_msg(self, thread_id, msg='', attachment=None, group=False, _id=None):
         # max length 20k chars, 10k unicoode chars
         if attachment is None:
             attachment = {}
         thread_id = unicode(thread_id)
         msg = unicode(msg)
-        _id = random.randint(0, 999999999999999999)
+        if _id is None:
+            _id = random.randint(0, 999999999999999999)
         data = {'action_type': 'ma-type:user-generated-message',
                 'author': 'fbid:' + self.uid,
                 'source': 'source:messenger:web',

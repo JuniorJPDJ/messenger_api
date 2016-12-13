@@ -1,4 +1,5 @@
 from .Thread import GroupThread, Thread
+from .Message import Message
 from .Person import Person
 from . import Actions
 
@@ -51,7 +52,10 @@ def thread_rename(action):
     thread.name = action.name
 
 
-#@reg(Actions.ThreadImageChangeAction) TODO
+@reg(Actions.ThreadImageChangeAction)
+def thread_image_change(action):
+    assert isinstance(action, Actions.ThreadImageChangeAction)
+    action.thread.image = action.image.url
 
 
 @reg(Actions.ThreadParticipantNicknameChangeAction)
@@ -76,9 +80,9 @@ def thread_color_change(action):
     action.thread.custom_color = action.color
 
 
-@reg(Actions.Message)
+@reg(Message)
 def message(action):
-    assert isinstance(action, Actions.Message)
+    assert isinstance(action, Message)
     action.thread.messages.append(action)
     action.thread.message_count += 1
     action.thread.last_msg_time = action.time

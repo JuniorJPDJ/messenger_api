@@ -22,7 +22,7 @@ TODO: Default puller actions:
     DONE: on_add
     DONE: on_nickname_change
     DONE: on_rename
-    TODO: on_image_change
+    DONE: on_image_change
     DONE: on_emoji_change
     DONE: on_color_change
     TODO: on_make_read

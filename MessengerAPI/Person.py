@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from enum import Enum
 
 from .base.Exceptions import UnknownDictFormatException
-from .utils.universal_type_checking import is_integer
+from .utils.universal_type_checking import is_integer, is_string
 
 __author__ = 'JuniorJPDJ'
 
@@ -22,6 +22,11 @@ class Gender(Enum):
 class Person(object):
     def __init__(self, messenger, fbid, name, short_name, image, imgsmall, gender):
         assert is_integer(fbid)
+        assert is_string(name)
+        assert is_string(short_name)
+        assert is_string(image)
+        assert is_string(imgsmall)
+        assert isinstance(gender, Gender)
         self.messenger = messenger
         self.fbid, self.name, self.short_name = fbid, name, short_name
         self.image, self.imgsmal, self.gender = image, imgsmall, gender

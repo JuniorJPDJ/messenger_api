@@ -2,8 +2,11 @@ from __future__ import unicode_literals
 
 from datetime import datetime
 
-from .Message import Message
 from .Attachments import Attachment
+# from .Thread import Thread  # recursive imports.. :(
+from .Person import Person
+from .Attachments import PhotoAttachment
+from .utils.universal_type_checking import is_string, is_integer
 
 __author__ = 'JuniorJPDJ'
 # TODO: Phone call action (missed etc.)
@@ -14,6 +17,8 @@ class Action(object):
 
     @classmethod
     def register_type(cls, _type, handler):
+        assert callable(handler)
+        assert is_string(_type)
         cls.__type_handlers[_type] = handler
 
     def __init__(self, msg, data):
@@ -32,6 +37,8 @@ class MessagingAction(Action):
 
     @classmethod
     def register_event(cls, event, handler):
+        assert callable(handler)
+        assert is_string(event)
         cls.__event_handlers[event] = handler
 
     @classmethod
@@ -50,6 +57,9 @@ for _event in ['deliver', 'delivery_receipt', 'read_receipt', 'read', 'change_mu
 
 class TypingAction(Action):
     def __init__(self, msg, data, thread, person, typing):
+        #assert isinstance(thread, Thread)
+        assert isinstance(person, Person)
+        assert isinstance(typing, bool)
         Action.__init__(self, msg, data)
         self.thread, self.person, self.typing = thread, person, typing
 
@@ -80,7 +90,6 @@ class MercuryAction(Action):
         return tuple(out)
 
 Action.register_type('mercury', MercuryAction.from_pull)
-MercuryAction.register_action_type('ma-type:user-generated-message', Message.from_mercury_action)
 
 
 class LogMessageAction(MercuryAction):
@@ -92,6 +101,11 @@ class LogMessageAction(MercuryAction):
 
     def __init__(self, msg, data, time, thread, author, mid, body):
         Action.__init__(self, msg, data)
+        assert isinstance(time, datetime)
+        #assert isinstance(thread, Thread)
+        assert isinstance(author, Person)
+        assert is_string(mid)
+        assert is_string(body)
         self.time, self.thread, self.author, self.mid, self.body = time, thread, author, mid, body
 
     @classmethod
@@ -137,6 +151,7 @@ class ThreadParticipantLeaveAction(LogMessageAction):
 class ThreadParticipantKickAction(LogMessageAction):
     def __init__(self, msg, data, time, thread, author, mid, body, removed_participants):
         LogMessageAction.__init__(self, msg, data, time, thread, author, mid, body)
+        assert isinstance(removed_participants, list)
         self.removed_participants = removed_participants
 
     @classmethod
@@ -155,6 +170,7 @@ LogMessageAction.register_log_message_type('log:unsubscribe', ThreadParticipantK
 class ThreadParticipantAddAction(LogMessageAction):
     def __init__(self, msg, data, time, thread, author, mid, body, added_participants):
         LogMessageAction.__init__(self, msg, data, time, thread, author, mid, body)
+        assert isinstance(added_participants, list)
         self.added_participants = added_participants
 
     @classmethod
@@ -169,6 +185,7 @@ LogMessageAction.register_log_message_type('log:subscribe', ThreadParticipantAdd
 class ThreadRenameAction(LogMessageAction):
     def __init__(self, msg, data, time, thread, author, mid, body, name):
         LogMessageAction.__init__(self, msg, data, time, thread, author, mid, body)
+        assert is_string(name)
         self.name = name
 
     @classmethod
@@ -183,6 +200,7 @@ LogMessageAction.register_log_message_type('log:thread-name', ThreadRenameAction
 class ThreadImageChangeAction(LogMessageAction):
     def __init__(self, msg, data, time, thread, author, mid, body, image):
         LogMessageAction.__init__(self, msg, data, time, thread, author, mid, body)
+        assert isinstance(image, PhotoAttachment)
         self.image = image
 
     @classmethod
@@ -197,6 +215,8 @@ LogMessageAction.register_log_message_type('log:thread-image', ThreadImageChange
 class ThreadParticipantNicknameChangeAction(GenericAdminTextAction):
     def __init__(self, msg, data, time, thread, author, mid, body, participant, name):
         GenericAdminTextAction.__init__(self, msg, data, time, thread, author, mid, body)
+        assert isinstance(participant, Person)
+        assert is_string(name)
         self.participant, self.name = participant, name
 
     @classmethod
@@ -212,6 +232,7 @@ GenericAdminTextAction.register_message_type('change_thread_nickname', ThreadPar
 class ThreadEmoticonChangeAction(GenericAdminTextAction):
     def __init__(self, msg, data, time, thread, author, mid, body, emoticon):
         GenericAdminTextAction.__init__(self, msg, data, time, thread, author, mid, body)
+        assert is_string(emoticon)
         self.emoticon = emoticon
 
     @classmethod
@@ -226,6 +247,7 @@ GenericAdminTextAction.register_message_type('change_thread_icon', ThreadEmotico
 class ThreadThemeColorChangeAction(GenericAdminTextAction):
     def __init__(self, msg, data, time, thread, author, mid, body, color):
         GenericAdminTextAction.__init__(self, msg, data, time, thread, author, mid, body)
+        assert is_string(color)
         self.color = color
 
     @classmethod
@@ -253,13 +275,14 @@ class DeltaAction(Action):
 
 Action.register_type('delta', DeltaAction.from_pull)
 Action.register_type('deltaflow', lambda msg, data: None)
-DeltaAction.register_delta_class('NewMessage', Message.from_pull)
 DeltaAction.register_delta_class('NoOp', lambda msg, data: None)
 
 
 class DeliveryAction(DeltaAction):
     def __init__(self, msg, data, time, thread):
         DeltaAction.__init__(self, msg, data)
+        #assert isinstance(thread, Thread)
+        assert isinstance(time, datetime)
         self.time, self.thread = time, thread
 
     @classmethod
@@ -273,6 +296,9 @@ DeltaAction.register_delta_class('DeliveryReceipt', DeliveryAction.from_pull)
 class ReadAction(DeltaAction):
     def __init__(self, msg, data, time, thread, reader):
         DeltaAction.__init__(self, msg, data)
+        #assert isinstance(thread, Thread)
+        assert isinstance(time, datetime)
+        assert isinstance(reader, Person)
         self.time, self.thread, self.reader = time, thread, reader
 
     @classmethod
@@ -287,6 +313,8 @@ DeltaAction.register_delta_class('ReadReceipt', ReadAction.from_pull)
 class MakeReadAction(DeltaAction):
     def __init__(self, msg, data, time, thread):
         DeltaAction.__init__(self, msg, data)
+        #assert isinstance(thread, Thread)
+        assert isinstance(time, datetime)
         self.time, self.thread = time, thread
 
     @classmethod
@@ -300,6 +328,8 @@ DeltaAction.register_delta_class('MarkRead', MakeReadAction.from_pull)
 class SetMuteAction(DeltaAction):
     def __init__(self, msg, data, thread, mute):
         DeltaAction.__init__(self, msg, data)
+        #assert isinstance(thread, Thread)
+        assert isinstance(mute, (datetime, bool))
         self.thread, self.mute = thread, mute
 
     @classmethod
@@ -315,6 +345,8 @@ DeltaAction.register_delta_class('ThreadMuteSettings', SetMuteAction.from_pull)
 class BuddyListOverlayAction(Action):
     def __init__(self, msg, data, person, last_active, p, ol, s, vc, a):
         Action.__init__(self, msg, data)
+        assert isinstance(person, Person)
+        assert isinstance(last_active, datetime)
         self.person, self.last_active, self.p, self.ol, self.s, self.vc, self.a = person, last_active, p, ol, s, vc, a
 
     @classmethod
@@ -331,6 +363,10 @@ Action.register_type('buddylist_overlay', BuddyListOverlayAction.from_pull)
 class InboxAction(Action):
     def __init__(self, msg, data, recent_unread, unread, unseen, seen_time):
         Action.__init__(self, msg, data)
+        assert is_integer(recent_unread)
+        assert is_integer(unread)
+        assert is_integer(unseen)
+        assert isinstance(seen_time, datetime)
         self.recent_unread, self.unread, self.unseen, self.seen_time = recent_unread, unread, unseen, seen_time
 
     @classmethod

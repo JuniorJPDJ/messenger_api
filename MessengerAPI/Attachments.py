@@ -5,6 +5,7 @@ import json
 import sys
 
 from .base.MessengerAPI import str_base
+from .utils.universal_type_checking import is_string, is_integer
 
 if sys.version_info >= (3, 0):
     unicode = str  # python3 support
@@ -17,12 +18,12 @@ __author__ = 'JuniorJPDJ'
 
 class AttachmentUploader(object):
     def __init__(self, msg):
-        """
-        :type msg: Messenger
-        """
         self.msg = msg
 
     def _upload(self, filename, filelike, mimetype=None):
+        assert hasattr(filelike, 'read')
+        assert is_string(filename)
+        assert is_string(mimetype)
         api = self.msg.msgapi
         api.uploadid += 1
         api.reqid += 1
@@ -39,6 +40,9 @@ class AttachmentUploader(object):
         return json.loads(resp.text[9:])['payload']['metadata'][0]
 
     def upload(self, filename, filelike, mimetype=None):
+        assert hasattr(filelike, 'read')
+        assert is_string(filename)
+        assert is_string(mimetype)
         payload = self._upload(filename, filelike, mimetype)
 
         _type = None
@@ -55,9 +59,11 @@ class Attachment(object):
 
     @classmethod
     def register_attach_type(cls, attach_type, handler):
+        assert callable(handler)
         cls.__attach_type_handlers[attach_type] = handler
 
     def __init__(self, data, url):
+        assert is_string(url)
         self.data, self.url = data, url
 
     @classmethod
@@ -84,6 +90,7 @@ class MultiSendableAttachment(SendableAttachment):
 
     def __init__(self, data, url, fbid):
         SendableAttachment.__init__(self, data, url)
+        assert is_integer(fbid)
         self.fbid = fbid
 
     def to_dict(self, num=0):
@@ -120,6 +127,7 @@ class UploadedAttachment(MultiSendableAttachment):
 class FileAttachment(Attachment):
     def __init__(self, data, url, name):
         Attachment.__init__(self, data, url)
+        assert is_string(name)
         self.name = name
 
     def __str__(self):
@@ -141,6 +149,7 @@ Attachment.register_attach_type('file', FileAttachment.from_dict)
 class VoiceAttachment(Attachment):
     def __init__(self, data, url, duration):
         Attachment.__init__(self, data, url)
+        assert is_integer(duration)
         self.duration = duration
 
     def __str__(self):
@@ -156,6 +165,11 @@ class PhotoAttachment(MultiSendableAttachment):
 
     def __init__(self, data, fbid, size, preview_url, preview_size, large_preview_url, large_preview_size):
         MultiSendableAttachment.__init__(self, data, large_preview_url, fbid)
+        assert isinstance(size, tuple)
+        assert isinstance(preview_size, tuple)
+        assert isinstance(large_preview_size, tuple)
+        assert is_string(preview_url)
+        assert is_string(large_preview_url)
         self.size, self.preview_url, self.preview_size = size, preview_url, preview_size
         self.large_preview_url, self.large_preview_size = large_preview_url, large_preview_size
 
@@ -190,6 +204,9 @@ class VideoAttachment(MultiSendableAttachment):
 
     def __init__(self, data, url, fbid, width, height, duration):
         MultiSendableAttachment.__init__(self, data, url, fbid)
+        assert is_integer(height)
+        assert is_integer(width)
+        assert is_integer(duration)
         self.height, self.width, self.duration = height, width, duration
 
     def __str__(self):
@@ -211,6 +228,8 @@ Attachment.register_attach_type('video', VideoAttachment.from_dict)
 class StickerAttachment(SendableAttachment):
     def __init__(self, data, url, stickerid, packid):
         SendableAttachment.__init__(self, data, url)
+        assert is_integer(stickerid)
+        assert is_integer(packid)
         self.stickerid, self.packid = stickerid, packid
 
     def __str__(self):
@@ -237,6 +256,7 @@ Attachment.register_attach_type('sticker', StickerAttachment.from_dict)
 class ShareAttachment(Attachment):
     def __init__(self, data, url, name):
         Attachment.__init__(self, data, url)
+        assert is_string(name)
         self.name = name
 
     def __str__(self):

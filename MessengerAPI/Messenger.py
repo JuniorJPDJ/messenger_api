@@ -66,12 +66,18 @@ class Messenger(object):
             handler(action)
 
     def get_person_from_cache(self, fbid):
+        '''
+        :return: Person
+        '''
         if fbid in self._people:
             return self._people[fbid]
         else:
             raise UnknownPersonException
 
     def get_person(self, fbid):
+        '''
+        :return: Person
+        '''
         assert is_integer(fbid)
         try:
             return self.get_person_from_cache(fbid)
@@ -84,12 +90,18 @@ class Messenger(object):
             return p
 
     def get_thread_from_cache(self, fbid):
+        '''
+        :return: Thread
+        '''
         if fbid in self._threads:
             return self._threads[fbid]
         else:
             raise UnknownThreadException
 
     def get_thread(self, fbid):
+        '''
+        :return: Thread
+        '''
         assert is_integer(fbid)
         # Pls don't kill me
         try:
@@ -119,6 +131,9 @@ class Messenger(object):
                 return thread
 
     def load_more_threads(self, amount=10):
+        '''
+        :return: {int: Thread}
+        '''
         return self._parse_threadlist(self.msgapi.get_thread_list(limit=amount, offset=self._threadlist_offset))
 
     def load_people_from_buddylist(self):
@@ -126,6 +141,9 @@ class Messenger(object):
         raise NotImplementedError
 
     def search(self, query, amount=8):
+        '''
+        :return: {int: Thread}
+        '''
         data = self.msgapi.search(query, limit=amount)
         threads = {}
         for e in data['entries']:
@@ -144,6 +162,9 @@ class Messenger(object):
         self.__action_handlers[action].append(handler)
 
     def upload_attachmnet(self, filename, filelike, mimetype=None):
+        '''
+        :return: UploadedAttachment
+        '''
         return self._uploader.upload(filename, filelike, mimetype)
 
     def pull(self):
