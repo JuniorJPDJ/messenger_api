@@ -25,7 +25,7 @@ class Person(object):
         assert is_string(name)
         assert is_string(short_name)
         assert is_string(image)
-        assert is_string(imgsmall)
+        assert isinstance(imgsmall, bool)
         assert isinstance(gender, Gender)
         self.messenger = messenger
         self.fbid, self.name, self.short_name = fbid, name, short_name

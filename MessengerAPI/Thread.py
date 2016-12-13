@@ -20,14 +20,14 @@ class Thread(object):
         assert isinstance(can_reply, bool)
         assert isinstance(archived, bool)
         assert is_string(folder)
-        assert is_string(custom_color)
+        assert is_string(custom_color) or custom_color is None
         assert isinstance(custom_nicknames, dict)
-        assert is_string(custom_emoji)
+        assert is_string(custom_emoji) or custom_emoji is None
         assert is_integer(message_count)
         assert is_integer(unread_count)
-        assert isinstance(last_msg_time, datetime)
-        assert isinstance(last_read_time, datetime)
-        assert isinstance(mute, (datetime, bool))
+        assert isinstance(last_msg_time, datetime.datetime)
+        assert isinstance(last_read_time, datetime.datetime)
+        assert isinstance(mute, (datetime.datetime, bool))
         self.messenger = messenger
         self.fbid, self.can_reply, self.archived, self.folder = fbid, can_reply, archived, folder
         self.custom_color, self.custom_nicknames, self.custom_emoji = custom_color, custom_nicknames, custom_emoji
@@ -164,7 +164,7 @@ class GroupThread(Thread):
                         message_count, unread_count, last_msg_time, last_read_time, mute)
         assert isinstance(participants, list)
         assert is_string(name)
-        assert is_string(image)
+        assert is_string(image) or image is None
         self.participants, self.name, self.image = participants,  name, image
 
     @classmethod
@@ -179,8 +179,10 @@ class GroupThread(Thread):
         last_msg_time = None if data['last_message_timestamp'] == -1 else datetime.datetime.fromtimestamp(data['last_message_timestamp'] / 1000.0)
         last_read_time = None if data['last_read_timestamp'] == -1 else datetime.datetime.fromtimestamp(data['last_read_timestamp'] / 1000.0)
 
+        emoji = data['custom_like_icon']['emoji'] if data['custom_like_icon'] is not None and 'emoji' in data['custom_like_icon'] else None
+
         return cls(messenger, int(data['thread_fbid']), data['can_reply'], data['is_archived'], data['folder'],
-                   data['custom_color'], custom_nicknames, data['custom_like_icon'], data['message_count'],
+                   data['custom_color'], custom_nicknames, emoji, data['message_count'],
                    data['unread_count'], last_msg_time, last_read_time, mute, participants, data['name'], data['image_src'])
 
     def leave(self):
