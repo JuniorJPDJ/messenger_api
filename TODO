@@ -14,10 +14,10 @@ DONE: PrivateThread
 DONE: Message
 DONE: Attachment
 DONE: Actions
-TODO: Default puller actions:
+DONE: Default puller actions:
     DONE: on_message
-    TODO: on_delivery
-    TODO: on_read
+    DONE: on_delivery
+    DONE: on_read
     DONE: on_leave/on_kick
     DONE: on_add
     DONE: on_nickname_change
@@ -25,7 +25,7 @@ TODO: Default puller actions:
     DONE: on_image_change
     DONE: on_emoji_change
     DONE: on_color_change
-    TODO: on_make_read
+    DONE: on_make_read
     DONE: on_mute_change
 
 TODO: Creating GroupThreads

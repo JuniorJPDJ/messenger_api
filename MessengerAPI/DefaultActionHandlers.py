@@ -88,13 +88,22 @@ def message(action):
     action.thread.last_msg_time = action.time
 
 
-#@reg(Actions.DeliveryAction) TODO
+@reg(Actions.DeliveryAction)
+def delivered(action):
+    assert isinstance(action, Actions.DeliveryAction)
+    action.thread.last_delivery = action.time
 
 
-#@reg(Actions.ReadAction) TODO
+@reg(Actions.ReadAction)
+def read(action):
+    assert isinstance(action, Actions.ReadAction)
+    action.thread[action.reader] = action.time
 
 
-#@reg(Actions.MakeReadAction) TODO
+@reg(Actions.MakeReadAction)
+def makeread(action):
+    assert isinstance(action, Actions.MakeReadAction)
+    action.thread.last_read_time = action.time
 
 
 @reg(Actions.SetMuteAction)
