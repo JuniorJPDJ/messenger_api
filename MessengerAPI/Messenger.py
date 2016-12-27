@@ -158,6 +158,7 @@ class Messenger(object):
         self._threads.update(threads)
         return threads
 
+# TODO: Implement priorities
     def register_action_handler(self, action, handler):
         self.__action_handlers[action].append(handler)
 
