@@ -145,8 +145,10 @@ class PrivateThread(Thread):
         last_msg_time = None if data['last_message_timestamp'] == -1 else datetime.datetime.fromtimestamp(data['last_message_timestamp'] / 1000.0)
         last_read_time = None if data['last_read_timestamp'] == -1 else datetime.datetime.fromtimestamp(data['last_read_timestamp'] / 1000.0)
 
+        emoji = data['custom_like_icon']['emoji'] if data['custom_like_icon'] is not None and 'emoji' in data['custom_like_icon'] else None
+
         return cls(messenger, int(data['thread_fbid']), data['can_reply'], data['is_archived'], data['folder'],
-                   data['custom_color'], custom_nicknames, data['custom_like_icon'], data['message_count'],
+                   data['custom_color'], custom_nicknames, emoji, data['message_count'],
                    data['unread_count'], last_msg_time, last_read_time, mute)
 
     def get_name(self):
