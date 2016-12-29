@@ -130,6 +130,9 @@ class Thread(object):
         else:
             return self.mute > datetime.datetime.now()
 
+    def get_image(self):
+        raise NotImplementedError()
+
 
 class PrivateThread(Thread):
     @classmethod
@@ -152,6 +155,9 @@ class PrivateThread(Thread):
     def rename(self, name):
         assert is_string(name)
         self.set_participant_name(self.messenger.get_person(self.fbid), name)
+
+    def get_image(self):
+        return self.messenger.get_person(self.fbid).image
 
 
 class GroupThread(Thread):
@@ -208,6 +214,9 @@ class GroupThread(Thread):
         assert isinstance(image_attachment, PhotoAttachment) or (isinstance(image_attachment, UploadedAttachment) and image_attachment.typename == "image")
         self.messenger.msgapi.change_thread_image(self.fbid, image_attachment.fbid)
         self.image = image_attachment.url
+
+    def get_image(self):
+        return self.image
 
     def get_name(self, generate_if_none=True):
         assert isinstance(generate_if_none, bool)
