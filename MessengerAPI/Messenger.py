@@ -54,7 +54,7 @@ class Messenger(object):
         if 'delivery_receipts' in threadlist:
             for t in threadlist['delivery_receipts']:
                 self.get_thread(int(t['thread_fbid'] if t['thread_fbid'] is not None else t['other_user_fbid'])).last_delivery = datetime.fromtimestamp(t['time'] / 1000.0)
-        if 'roger' in threadlist:
+        if 'roger' in threadlist and isinstance(threadlist['roger'], dict):
             for t in threadlist['roger'].items():
                 th = self.get_thread(int(t[0]))
                 for p in t[1]:
