@@ -26,7 +26,7 @@ class Thread(object):
         assert is_integer(message_count)
         assert is_integer(unread_count)
         assert isinstance(last_msg_time, datetime.datetime)
-        assert isinstance(last_read_time, datetime.datetime)
+        assert isinstance(last_read_time, (datetime.datetime, None))
         assert isinstance(mute, (datetime.datetime, bool))
         self.messenger = messenger
         self.fbid, self.can_reply, self.archived, self.folder = fbid, can_reply, archived, folder

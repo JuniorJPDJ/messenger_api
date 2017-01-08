@@ -97,7 +97,7 @@ def delivered(action):
 @reg(Actions.ReadAction)
 def read(action):
     assert isinstance(action, Actions.ReadAction)
-    action.thread[action.reader] = action.time
+    action.thread.last_read[action.reader] = action.time
 
 
 @reg(Actions.MakeReadAction)
