@@ -357,7 +357,7 @@ class BuddyListOverlayAction(Action):
             if last_active is not None:
                 last_active = datetime.fromtimestamp(last_active)
 
-            r.append(cls(msg, o, msg.get_person(int(o[0])), last_active), o[1].get('p', None),
+            r.append(cls(msg, o, msg.get_person(int(o[0])), last_active, o[1].get('p', None),
                          o[1].get('ol', None), o[1].get('s', None), o[1].get('vc', None), o[1].get('p', None)))
         return tuple(r)
 
