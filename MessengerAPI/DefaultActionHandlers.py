@@ -115,7 +115,9 @@ def mute(action):
 @reg(Actions.BuddyListOverlayAction)
 def person_activity(action):
     assert isinstance(action, Actions.BuddyListOverlayAction)
-    action.person.last_active = action.last_active
+
+    if last_active is not None:
+        action.person.last_active = action.last_active
 
 
 def register_handlers(msg):

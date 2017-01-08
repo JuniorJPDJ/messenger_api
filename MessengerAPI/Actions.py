@@ -346,14 +346,18 @@ class BuddyListOverlayAction(Action):
     def __init__(self, msg, data, person, last_active, p, ol, s, vc, a):
         Action.__init__(self, msg, data)
         assert isinstance(person, Person)
-        assert isinstance(last_active, datetime)
+        assert isinstance(last_active, (datetime, None))
         self.person, self.last_active, self.p, self.ol, self.s, self.vc, self.a = person, last_active, p, ol, s, vc, a
 
     @classmethod
     def from_pull(cls, msg, data):
         r = []
         for o in data['overlay'].items():
-            r.append(cls(msg, o, msg.get_person(int(o[0])), datetime.fromtimestamp(o[1]['la']), o[1].get('p', None),
+            last_active = o[1].get('la', None)
+            if last_active is not None:
+                last_active = datetime.fromtimestamp(last_active)
+
+            r.append(cls(msg, o, msg.get_person(int(o[0])), last_active), o[1].get('p', None),
                          o[1].get('ol', None), o[1].get('s', None), o[1].get('vc', None), o[1].get('p', None)))
         return tuple(r)
 
