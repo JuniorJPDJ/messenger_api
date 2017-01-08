@@ -116,7 +116,7 @@ def mute(action):
 def person_activity(action):
     assert isinstance(action, Actions.BuddyListOverlayAction)
 
-    if last_active is not None:
+    if action.last_active is not None:
         action.person.last_active = action.last_active
 
 
