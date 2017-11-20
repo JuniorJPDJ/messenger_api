@@ -17,8 +17,8 @@ __version__ = 0.1
 
 
 class Messenger(object):
-    def __init__(self, login, pw, useragent='default'):
-        self.msgapi = MessengerAPI(login, pw, useragent)
+    def __init__(self, login, pw, timezone=None, useragent='default'):
+        self.msgapi = MessengerAPI(login, pw, timezone, useragent)
         self._uploader = AttachmentUploader(self)
         self._pparser = MessengerPullParser(self)
         self._people = {}
@@ -162,7 +162,7 @@ class Messenger(object):
     def register_action_handler(self, action, handler):
         self.__action_handlers[action].append(handler)
 
-    def upload_attachmnet(self, filename, filelike, mimetype=None):
+    def upload_attachment(self, filename, filelike, mimetype=None):
         '''
         :return: UploadedAttachment
         '''

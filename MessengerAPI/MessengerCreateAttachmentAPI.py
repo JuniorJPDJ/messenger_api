@@ -9,7 +9,7 @@ from .Messenger import Messenger
 
 __author__ = 'JuniorJPDJ'
 
-# TODO: merge with Attachments.py (partialy done)
+# TODO: merge with Attachments.py (partially done)
 
 
 class MessengerCreateAttachment(object):

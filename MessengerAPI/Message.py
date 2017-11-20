@@ -49,7 +49,7 @@ class Message(LogMessageAction):
         else:
             return True
 
-    def send_deliviery_receipt(self):
+    def send_delivery_receipt(self):
         if self.author != self.thread.messenger.me:
             self.thread.messenger.msgapi.send_delivery_receipt(self.id, self.thread.fbid)
 

@@ -29,7 +29,7 @@ class Person(object):
         assert isinstance(gender, Gender)
         self.messenger = messenger
         self.fbid, self.name, self.short_name = fbid, name, short_name
-        self.image, self.imgsmal, self.gender = image, imgsmall, gender
+        self.image, self.imgsmall, self.gender = image, imgsmall, gender
         self.last_active = None
 
     def __repr__(self):
