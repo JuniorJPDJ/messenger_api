@@ -4,8 +4,8 @@ import json
 import mimetypes
 import os
 
-from .base.MessengerAPI import str_base, MessengerAPI
 from .Messenger import Messenger
+from .base.MessengerAPI import str_base, MessengerAPI
 
 __author__ = 'JuniorJPDJ'
 

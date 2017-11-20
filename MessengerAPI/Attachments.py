@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
-import mimetypes
 import json
+import mimetypes
 import sys
 
 from .base.MessengerAPI import str_base

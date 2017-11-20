@@ -1,15 +1,15 @@
 from __future__ import unicode_literals
 
-from datetime import datetime
 from collections import defaultdict
+from datetime import datetime
 
-from .base.Exceptions import UserNotFoundException, UnknownThreadException, UnknownPersonException, MessengerException
-from .MessengerPullParser import MessengerPullParser
-from .DefaultActionHandlers import register_handlers
-from .base.MessengerAPI import MessengerAPI
-from .Thread import Thread, PrivateThread
 from .Attachments import AttachmentUploader
+from .DefaultActionHandlers import register_handlers
+from .MessengerPullParser import MessengerPullParser
 from .Person import Person
+from .Thread import Thread, PrivateThread
+from .base.Exceptions import UserNotFoundException, UnknownThreadException, UnknownPersonException, MessengerException
+from .base.MessengerAPI import MessengerAPI
 from .utils.universal_type_checking import is_integer
 
 __author__ = 'JuniorJPDJ'

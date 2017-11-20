@@ -1,14 +1,14 @@
 from __future__ import unicode_literals
 
+import datetime
 import json
 import random
-import requests
-import time
-import datetime
 import sys
+import time
+
+import requests
 
 from .Exceptions import *
-
 
 if sys.version_info >= (3, 0):
     unicode = str  # python3 support

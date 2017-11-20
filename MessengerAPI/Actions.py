@@ -3,9 +3,9 @@ from __future__ import unicode_literals
 from datetime import datetime
 
 from .Attachments import Attachment
+from .Attachments import PhotoAttachment
 # from .Thread import Thread  # recursive imports.. :(
 from .Person import Person
-from .Attachments import PhotoAttachment
 from .utils.universal_type_checking import is_string, is_integer
 
 __author__ = 'JuniorJPDJ'

@@ -2,8 +2,8 @@ from __future__ import unicode_literals
 
 from datetime import datetime
 
-from .Attachments import Attachment
 from .Actions import LogMessageAction, DeltaAction
+from .Attachments import Attachment
 from .Person import Person
 
 __author__ = 'JuniorJPDJ'

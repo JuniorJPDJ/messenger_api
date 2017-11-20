@@ -2,9 +2,9 @@ from __future__ import unicode_literals
 
 import datetime
 
+from .Actions import MercuryAction
 from .Attachments import SendableAttachment, PhotoAttachment, UploadedAttachment
 from .Message import Message
-from .Actions import MercuryAction
 from .Person import Person
 from .utils.universal_type_checking import is_integer, is_string
 

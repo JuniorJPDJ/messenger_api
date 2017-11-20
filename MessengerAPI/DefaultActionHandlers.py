@@ -1,8 +1,7 @@
-from .Thread import GroupThread, Thread
+from . import Actions
 from .Message import Message
 from .Person import Person
-from . import Actions
-
+from .Thread import GroupThread, Thread
 
 handlers = {}
 
