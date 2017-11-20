@@ -26,7 +26,7 @@ class Thread(object):
         assert is_integer(message_count)
         assert is_integer(unread_count)
         assert isinstance(last_msg_time, datetime.datetime)
-        assert isinstance(last_read_time, (datetime.datetime, None))
+        assert isinstance(last_read_time, (datetime.datetime, type(None)))
         assert isinstance(mute, (datetime.datetime, bool))
         self.messenger = messenger
         self.fbid, self.can_reply, self.archived, self.folder = fbid, can_reply, archived, folder
@@ -143,7 +143,7 @@ class PrivateThread(Thread):
         custom_nicknames = dict([(messenger.get_person(int(fbid[0])), fbid[1]) for fbid in data['custom_nickname'].items()]) if data['custom_nickname'] is not None else dict()
 
         last_msg_time = None if data['last_message_timestamp'] == -1 else datetime.datetime.fromtimestamp(data['last_message_timestamp'] / 1000.0)
-        last_read_time = None if data['last_read_timestamp'] == -1 else datetime.datetime.fromtimestamp(data['last_read_timestamp'] / 1000.0)
+        last_read_time = None if data['last_read_timestamp'] == -1000 else datetime.datetime.fromtimestamp(data['last_read_timestamp'] / 1000.0)
 
         emoji = data['custom_like_icon']['emoji'] if data['custom_like_icon'] is not None and 'emoji' in data['custom_like_icon'] else None
 
@@ -185,7 +185,7 @@ class GroupThread(Thread):
         custom_nicknames = dict([(messenger.get_person(int(fbid[0])), fbid[1]) for fbid in data['custom_nickname'].items()]) if data['custom_nickname'] is not None else dict()
 
         last_msg_time = None if data['last_message_timestamp'] == -1 else datetime.datetime.fromtimestamp(data['last_message_timestamp'] / 1000.0)
-        last_read_time = None if data['last_read_timestamp'] == -1 else datetime.datetime.fromtimestamp(data['last_read_timestamp'] / 1000.0)
+        last_read_time = None if data['last_read_timestamp'] in (-1000, -1) else datetime.datetime.fromtimestamp(data['last_read_timestamp'] / 1000.0)
 
         emoji = data['custom_like_icon']['emoji'] if data['custom_like_icon'] is not None and 'emoji' in data['custom_like_icon'] else None
 

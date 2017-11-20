@@ -44,8 +44,8 @@ thread.rename(newname)
 logging.info('Setting it back')
 thread.rename(name)
 
-# logging.info('Sending random message')
-# thread.send_message(randomword(64))
+logging.info('Sending random message')
+thread.send_message(randomword(64))
 
 logging.info('Making messages read')
 thread.make_read()

@@ -71,14 +71,14 @@ class MessengerAPI(object):
 
         co = self.sess.get('https://www.messenger.com').text
 
-        lsd_token = co.split('"token":"')[1].split('"')[0]
-        initreqid = co.split('initialRequestID":"')[1].split('"')[0]
+        lsd_token = co.split('"token":"', 1)[1].split('"', 1)[0]
+        initreqid = co.split('initialRequestID":"', 1)[1].split('"', 1)[0]
         timezone = (time.timezone if (time.localtime().tm_isdst == 0) else time.altzone) / 60
-        lgnrnd = co.split('name="lgnrnd" value="')[1].split('"')[0]
+        lgnrnd = co.split('name="lgnrnd" value="', 1)[1].split('"', 1)[0]
         lgnjs = int(time.time())
-        identifier = co.split('identifier":"')[1].split('"')[0]
+        identifier = co.split('identifier":"', 1)[1].split('"', 1)[0]
         try:
-            datr = co.split('"_js_datr","')[1].split('"')[0]
+            datr = co.split('"_js_datr","', 1)[1].split('"', 1)[0]
             self.sess.cookies.update({'_js_datr': datr})
         except IndexError:
             pass
@@ -96,7 +96,7 @@ class MessengerAPI(object):
 
         data = res.text
 
-        self.dtsg_token = data.split('"token":"')[1].split('"')[0]
+        self.dtsg_token = data.split('"token":"', 1)[1].split('"', 1)[0]
 
         self.ttstamp = '2'
         for w in range(len(self.dtsg_token)):
@@ -106,17 +106,23 @@ class MessengerAPI(object):
         self.uploadid = 1023
         self.sessid = str_base(random.randint(0, 2147483647), 16)
 
-        self.rev = data.split('revision":')[1].split(',')[0]
-        self.uid = data.split('USER_ID":"')[1].split('"')[0]
+        self.rev = data.split('revision":', 1)[1].split(',', 1)[0]
+        self.uid = data.split('USER_ID":"', 1)[1].split('"', 1)[0]
 
-        self.locale = data.split('locale:"')[1].split('"')[0]
-        self.lang = data.split('language:"')[1].split('"')[0]
+        # TODO: find a solution, that works always
+        # self.locale = data.split('locale:"')[1].split('"')[0]
+        # self.lang = data.split('language:"')[1].split('"')[0]
+        # self.locale = data.split('locale:')[1].split('"')[0]
+        # self.lang = data.split('language:')[1].split('"')[0]
+        self.locale = data.split('locale":"', 1)[1].split('"', 1)[0]
+        self.lang = data.split('language":"', 1)[1].split('"', 1)[0]
 
-        self.last_active = json.loads(data.split('"lastActiveTimes":')[1].split('},')[0]+'}')
+
+        self.last_active = json.loads(data.split('"lastActiveTimes":', 1)[1].split('},', 1)[0]+'}')
 
         o = u''
         t = 0
-        for c in data.split('"mercuryPayload":')[1]:
+        for c in data.split('"mercuryPayload":', 1)[1]:
             if c == '{':
                 t += 1
             elif c == "}":

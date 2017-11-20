@@ -346,7 +346,7 @@ class BuddyListOverlayAction(Action):
     def __init__(self, msg, data, person, last_active, p, ol, s, vc, a):
         Action.__init__(self, msg, data)
         assert isinstance(person, Person)
-        assert isinstance(last_active, (datetime, None))
+        assert isinstance(last_active, (datetime, type(None)))
         self.person, self.last_active, self.p, self.ol, self.s, self.vc, self.a = person, last_active, p, ol, s, vc, a
 
     @classmethod
@@ -370,12 +370,12 @@ class InboxAction(Action):
         assert is_integer(recent_unread)
         assert is_integer(unread)
         assert is_integer(unseen)
-        assert isinstance(seen_time, datetime)
+        assert isinstance(seen_time, (datetime, type(None)))
         self.recent_unread, self.unread, self.unseen, self.seen_time = recent_unread, unread, unseen, seen_time
 
     @classmethod
     def from_pull(cls, msg, data):
-        seen_time = datetime.fromtimestamp(int(data['seen_timestamp']) / 1000.0)
+        seen_time = datetime.fromtimestamp(int(data['seen_timestamp']) / 1000.0) if int(data['seen_timestamp']) else None
         return cls(msg, data, data['recent_unread'], data['unread'], data['unseen'], seen_time)
 
 Action.register_type('inbox', InboxAction.from_pull)

@@ -2,7 +2,7 @@ TODO: Docs              *I gonna die, You know?*
 DONE: make project care about types
 TODO: setuptools
 
-
+TODO: 2 factor auth
 TODO: Forwarding attachments (partially done)
 
 Objects:
@@ -34,3 +34,5 @@ TODO: Emoji list
 TODO: StickerPack
 TODO: Sticker
 TODO: StickerShop
+TODO: Poll support
+TODO: Plan/Event support

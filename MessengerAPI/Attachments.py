@@ -15,6 +15,8 @@ else:
 
 __author__ = 'JuniorJPDJ'
 
+# TODO: Fix incomming attachments (facebook changed it)
+
 
 class AttachmentUploader(object):
     def __init__(self, msg):
@@ -68,6 +70,7 @@ class Attachment(object):
 
     @classmethod
     def from_dict(cls, data):
+        return None  # todo: remove this
         if data['attach_type'] in cls.__attach_type_handlers:
             return cls.__attach_type_handlers[data['attach_type']](data)
         else:
