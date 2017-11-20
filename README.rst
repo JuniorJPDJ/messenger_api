@@ -8,6 +8,7 @@ Installation
 Just use pip, as you would with all packages
 
 .. code-block:: bash
+
     $ pip install requests
 
 
@@ -24,6 +25,7 @@ Examples
 Simple example of sending message to thread
 
 .. code-block:: python
+
     >>> from messenger_api import Messenger
     >>> msg = Messenger('login', 'password')
     >>> thread = msg.get_thread(485734986798)
