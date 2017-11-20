@@ -6,7 +6,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, "messenger_api", "__version__.py")) as f:
     exec(f.read(), about)
 
-with open('README.md') as f:
+with open('README.rst') as f:
     long_description = f.read()
 
 __version__ = about['__version__']
@@ -20,7 +20,7 @@ setup(
     author='JuniorJPDJ',
     author_email="juniorjpdj@interia.pl",
     url='https://github.com/JuniorJPDJ/messenger_api',
-    packages=find_packages(exclude=['contrib', 'docs', 'tests']),
+    packages=find_packages(exclude=['contrib', 'docs', 'tests', 'examples']),
     install_requires=required,
     license='LGPLv3+',
     python_requires='>=2.6, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4',

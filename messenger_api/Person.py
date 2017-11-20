@@ -18,6 +18,7 @@ class Gender(Enum):
     gender_5 = 5
     gender_6 = 6
     gender_7 = 7
+    chatbot = 11  # GearBest has that "gender"
 
 
 class Person(object):
