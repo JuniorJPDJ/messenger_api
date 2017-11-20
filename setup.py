@@ -13,7 +13,7 @@ __version__ = about['__version__']
 required = ['requests']
 
 setup(
-    name='messenger_api',
+    name='messenger-api',
     version=__version__,
     description='Unofficial Facebook Messenger library for Python 2.6+ / Python 3.4+ / pypy',
     long_description=long_description,

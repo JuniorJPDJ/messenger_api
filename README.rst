@@ -9,7 +9,7 @@ Just use pip, as you would with all packages
 
 .. code-block:: bash
 
-    $ pip install requests
+    $ pip install messenger-api
 
 
 Documentation
