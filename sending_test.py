@@ -6,8 +6,8 @@ import logging
 import random
 import string
 
-from MessengerAPI.Messenger import Messenger
-from MessengerAPI.Message import Message
+from messenger_api.Messenger import Messenger
+from messenger_api.Message import Message
 
 
 __author__ = 'JuniorJPDJ'

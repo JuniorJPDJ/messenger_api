@@ -38,7 +38,7 @@ class Thread(object):
         self.last_read = {}
 
     def __repr__(self):
-        return u"<MessengerAPI.Thread.{}: \"{}\" ({})>".format(self.__class__.__name__, self.get_name(), self.fbid)
+        return u"<messenger_api.Thread.{}: \"{}\" ({})>".format(self.__class__.__name__, self.get_name(), self.fbid)
 
     @classmethod
     def from_dict(cls, messenger, data):

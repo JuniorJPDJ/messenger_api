@@ -1,8 +1,8 @@
 import logging
 import argparse
 
-from MessengerAPI.Messenger import Messenger
-from MessengerAPI import Actions
+from messenger_api.Messenger import Messenger
+from messenger_api import Actions
 
 
 logging.basicConfig(level=logging.DEBUG)

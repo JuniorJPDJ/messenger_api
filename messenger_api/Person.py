@@ -12,6 +12,7 @@ class Gender(Enum):
     fanpage = 0
     female = 1
     male = 2
+    # please, help, I don't know what's that..
     gender_3 = 3
     gender_4 = 4
     gender_5 = 5
@@ -33,7 +34,7 @@ class Person(object):
         self.last_active = None
 
     def __repr__(self):
-        return u"<MessengerAPI.Person.Person: \"{}\" ({})>".format(self.name, self.fbid)
+        return u"<messenger_api.Person.Person: \"{}\" ({})>".format(self.name, self.fbid)
 
     @classmethod
     def from_dict(cls, messenger, data):

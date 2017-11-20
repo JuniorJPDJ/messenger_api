@@ -13,7 +13,6 @@ from .base.MessengerAPI import MessengerAPI
 from .utils.universal_type_checking import is_integer
 
 __author__ = 'JuniorJPDJ'
-__version__ = 0.1
 
 
 class Messenger(object):
