@@ -15,14 +15,14 @@ Just use pip, as you would with all packages
 Documentation
 -------------
 
-There's no docs, I'm sorry.
-Some day I'll do it.
+There are no docs, I'm sorry.
+I'll do them... someday
 
 
 Examples
 --------
 
-Simple example of sending message to thread
+A simple example of sending message to the thread
 
 .. code-block:: python
 
@@ -42,5 +42,5 @@ Soon you will be able to find some examples in `examples` directory
 Contribute
 ----------
 
-I will appriciate pull requests, but if you want to help you even can just let me know that it stopped working..
-I'm not using this library at everyday use and I don't have time to check if Facebook made any changes that breaks compatibility.
+I will appreciate pull requests, but if you want to help, you can just let me know if it stopped working..
+I'm not using this library at everyday use and I don't have time to check if Facebook made any changes that break compatibility.
