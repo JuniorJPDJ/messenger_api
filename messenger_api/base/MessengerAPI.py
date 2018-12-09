@@ -73,7 +73,7 @@ class MessengerAPI(object):
 
         co = self.sess.get('https://www.messenger.com').text
 
-        lsd_token = co.split('"token":"', 1)[1].split('"', 1)[0]
+        lsd_token = co.split('LSD')[1].split('"token":"')[1].split('"')[0]
         initreqid = co.split('initialRequestID":"', 1)[1].split('"', 1)[0]
         timezone = (datetime.datetime.now() - datetime.datetime.utcnow()).total_seconds() / 60 if timezone is None else timezone
         lgnrnd = co.split('name="lgnrnd" value="', 1)[1].split('"', 1)[0]
@@ -123,7 +123,7 @@ class MessengerAPI(object):
 
         o = u''
         t = 0
-        for c in data.split('"mercuryPayload":', 1)[1]:
+        for c in data.split('"graphqlPayload":', 1)[1]:
             if c == '{':
                 t += 1
             elif c == "}":

@@ -38,18 +38,26 @@ class Messenger(object):
                 if p['fbid'] not in self._people:
                     self._people[int(p['fbid'])] = Person.from_dict(self, p)
         new_threads = {}
-        if 'threads' in threadlist:
-            for t in threadlist['threads']:
-                if int(t['thread_fbid']) not in self._threads:
+        if 'thread_list' in threadlist:
+            for t in threadlist['thread_list']['viewer']['message_threads']['nodes']:
+                key = t['thread_key']
+
+                if key['thread_fbid'] is not None and int(key['thread_fbid']):
+                    id = int(key['thread_fbid'])
+                else:
+                    id = int(key['other_user_id'])
+
+                if id not in self._threads:
                     self._threadlist_offset += 1
-                    new_threads[int(t['thread_fbid'])] = Thread.from_dict(self, t)
+                    new_threads[id] = Thread.from_dict(self, t)
         self._threads.update(new_threads)
-        for t in threadlist['ordered_threadlists'][0]['thread_ids']:
-            for th in threadlist['threads']:
-                if t == th['thread_id']:
-                    if int(th['thread_fbid']) not in self.ordered_thread_list:
-                        self.ordered_thread_list.append(self.get_thread(int(th['thread_fbid'])))
-                    break
+        # FIXME this seems to have been removed
+        # for t in threadlist['ordered_threadlists'][0]['thread_ids']:
+        #     for th in threadlist['threads']:
+        #         if t == th['thread_id']:
+        #             if int(th['thread_fbid']) not in self.ordered_thread_list:
+        #                 self.ordered_thread_list.append(self.get_thread(int(th['thread_fbid'])))
+        #             break
         if 'delivery_receipts' in threadlist:
             for t in threadlist['delivery_receipts']:
                 self.get_thread(int(t['thread_fbid'] if t['thread_fbid'] is not None else t['other_user_fbid'])).last_delivery = datetime.fromtimestamp(t['time'] / 1000.0)
@@ -87,6 +95,15 @@ class Messenger(object):
             p = Person.from_dict(self, data[str(fbid)])
             self._people[fbid] = p
             return p
+
+    def add_person(self, data):
+        """
+        :param data: json
+        :return: person
+        """
+        p = Person.from_dict(self, data)
+        self._people[int(data['id'])] = p
+        return p
 
     def get_thread_from_cache(self, fbid):
         '''

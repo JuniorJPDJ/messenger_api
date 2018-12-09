@@ -7,6 +7,7 @@ from .Attachments import SendableAttachment, PhotoAttachment, UploadedAttachment
 from .Message import Message
 from .Person import Person
 from .utils.universal_type_checking import is_integer, is_string
+from .base.Exceptions import UserNotFoundException
 
 __author__ = 'JuniorJPDJ'
 
@@ -42,7 +43,7 @@ class Thread(object):
 
     @classmethod
     def from_dict(cls, messenger, data):
-        if data['other_user_fbid'] is None:
+        if data['thread_key']['other_user_id'] is None:
             return GroupThread.from_dict(messenger, data)
         else:
             return PrivateThread.from_dict(messenger, data)
@@ -140,15 +141,31 @@ class PrivateThread(Thread):
         mute = int(data['mute_until']) if data['mute_until'] else 0
         mute = False if mute == 0 else True if mute == -1 else datetime.datetime.fromtimestamp(mute)
 
-        custom_nicknames = dict([(messenger.get_person(int(fbid[0])), fbid[1]) for fbid in data['custom_nickname'].items()]) if data['custom_nickname'] is not None else dict()
+        custom_nicknames = dict()
+        emoji = None
+        outgoing_bubble_color = None
+        if data['customization_enabled'] is True and data['customization_info'] is not None:
+            if data['customization_info']['participant_customizations'] is not None:
+                custom_nicknames = dict([(messenger.get_person(int(entry['participant_id'])), entry['nickname']) for entry in data['customization_info']['participant_customizations']])
 
-        last_msg_time = None if data['last_message_timestamp'] == -1 else datetime.datetime.fromtimestamp(data['last_message_timestamp'] / 1000.0)
-        last_read_time = None if data['last_read_timestamp'] == -1000 else datetime.datetime.fromtimestamp(data['last_read_timestamp'] / 1000.0)
+            if 'emoji' in data['customization_info']:
+                emoji = data['customization_info']['emoji']
 
-        emoji = data['custom_like_icon']['emoji'] if data['custom_like_icon'] is not None and 'emoji' in data['custom_like_icon'] else None
+            outgoing_bubble_color = data['customization_info']['outgoing_bubble_color']
 
-        return cls(messenger, int(data['thread_fbid']), data['can_reply'], data['is_archived'], data['folder'],
-                   data['custom_color'], custom_nicknames, emoji, data['message_count'],
+        if 'last_message' in data and int(data['last_message']['nodes'][0]['timestamp_precise']) != -1:
+            last_msg_time = datetime.datetime.fromtimestamp(int(data['last_message']['nodes'][0]['timestamp_precise']) / 1000)
+        else:
+            last_msg_time = None
+
+        if 'last_read_receipt' in data and int(data['last_read_receipt']['nodes'][0]['timestamp_precise']) not in (-1000, -1):
+            last_read_time = datetime.datetime.fromtimestamp(
+                int(data['last_read_receipt']['nodes'][0]['timestamp_precise']) / 1000)
+        else:
+            last_read_time = None
+
+        return cls(messenger, int(data['thread_key']['other_user_id']), True, False, data['folder'],
+                   outgoing_bubble_color, custom_nicknames, emoji, data['messages_count'],
                    data['unread_count'], last_msg_time, last_read_time, mute)
 
     def get_name(self):
@@ -180,18 +197,46 @@ class GroupThread(Thread):
         mute = int(data['mute_until']) if data['mute_until'] else 0
         mute = False if mute == 0 else True if mute == -1 else datetime.datetime.fromtimestamp(mute)
 
-        participants = [messenger.get_person(int(fbid[5:])) for fbid in data['participants']]
+        participants = []
 
-        custom_nicknames = dict([(messenger.get_person(int(fbid[0])), fbid[1]) for fbid in data['custom_nickname'].items()]) if data['custom_nickname'] is not None else dict()
+        for edge in data['all_participants']['edges']:
+            try:
+                participants.append(messenger.get_person(int(edge['node']['messaging_actor']['id'])))
+            except UserNotFoundException:
+                participants.append(messenger.add_person(edge['node']['messaging_actor']))
 
-        last_msg_time = None if data['last_message_timestamp'] == -1 else datetime.datetime.fromtimestamp(data['last_message_timestamp'] / 1000.0)
-        last_read_time = None if data['last_read_timestamp'] in (-1000, -1) else datetime.datetime.fromtimestamp(data['last_read_timestamp'] / 1000.0)
+        custom_nicknames = dict()
+        emoji = None
+        outgoing_bubble_color = None
+        if data['customization_enabled'] is True and data['customization_info'] is not None:
+            if data['customization_info']['participant_customizations'] is not None:
+                custom_nicknames = dict([(messenger.get_person(int(entry['participant_id'])), entry['nickname']) for entry in data['customization_info']['participant_customizations']])
 
-        emoji = data['custom_like_icon']['emoji'] if data['custom_like_icon'] is not None and 'emoji' in data['custom_like_icon'] else None
+            if 'emoji' in data['customization_info']:
+                emoji = data['customization_info']['emoji']
 
-        return cls(messenger, int(data['thread_fbid']), data['can_reply'], data['is_archived'], data['folder'],
-                   data['custom_color'], custom_nicknames, emoji, data['message_count'],
-                   data['unread_count'], last_msg_time, last_read_time, mute, participants, data['name'], data['image_src'])
+            outgoing_bubble_color = data['customization_info']['outgoing_bubble_color']
+
+        if 'last_message' in data and int(data['last_message']['nodes'][0]['timestamp_precise']) != -1:
+            last_msg_time = datetime.datetime.fromtimestamp(int(data['last_message']['nodes'][0]['timestamp_precise']) / 1000)
+        else:
+            last_msg_time = None
+
+        if 'last_read_receipt' in data and int(data['last_read_receipt']['nodes'][0]['timestamp_precise']) not in (-1000, -1):
+            last_read_time = datetime.datetime.fromtimestamp(
+                int(data['last_read_receipt']['nodes'][0]['timestamp_precise']) / 1000)
+        else:
+            last_read_time = None
+
+        image = None if data['image'] is None else data['image']['uri']
+
+        name = data['name']
+        if name is None:
+            name = u''
+
+        return cls(messenger, int(data['thread_key']['thread_fbid']), True, False, data['folder'],
+                   outgoing_bubble_color, custom_nicknames, emoji, data['messages_count'],
+                   data['unread_count'], last_msg_time, last_read_time, mute, participants, name, image)
 
     def leave(self):
         self.messenger.msgapi.leave_thread(self.fbid)
