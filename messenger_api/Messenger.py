@@ -43,13 +43,13 @@ class Messenger(object):
                 key = t['thread_key']
 
                 if key['thread_fbid'] is not None and int(key['thread_fbid']):
-                    id = int(key['thread_fbid'])
+                    fbid = int(key['thread_fbid'])
                 else:
-                    id = int(key['other_user_id'])
+                    fbid = int(key['other_user_id'])
 
-                if id not in self._threads:
+                if fbid not in self._threads:
                     self._threadlist_offset += 1
-                    new_threads[id] = Thread.from_dict(self, t)
+                    new_threads[fbid] = Thread.from_dict(self, t)
         self._threads.update(new_threads)
         # FIXME this seems to have been removed
         # for t in threadlist['ordered_threadlists'][0]['thread_ids']:
